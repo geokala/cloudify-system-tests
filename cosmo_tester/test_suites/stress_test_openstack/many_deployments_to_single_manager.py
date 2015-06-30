@@ -34,10 +34,13 @@ def num(s):
 class ManyDeploymentsTest(MonitoringTestCase):
 
     def wait_until_all_deployment_executions_end(self, deployment_id):
+        start_time = time.time()
         while len([execution for execution in self.client.executions.list(
                 deployment_id=deployment_id)
-                   if execution["status"] not in Execution.END_STATES]) > 0:
+                if execution["status"] not in Execution.END_STATES]) > 0:
             time.sleep(1)
+            if time.time() - start_time > 10*60:
+                raise Exception('waiting for deployment executions to end took too much time.')
         return
 
     def many_deployments_stress_test(self):
