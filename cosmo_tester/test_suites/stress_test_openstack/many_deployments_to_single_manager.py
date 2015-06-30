@@ -40,7 +40,9 @@ class ManyDeploymentsTest(MonitoringTestCase):
                 if execution["status"] not in Execution.END_STATES]) > 0:
             time.sleep(1)
             if time.time() - start_time > 10*60:
-                raise Exception('waiting for deployment executions to end took too much time.')
+                raise Exception(
+                    'waiting for deployment executions '
+                    'to end took too much time.')
         return
 
     def many_deployments_stress_test(self):
