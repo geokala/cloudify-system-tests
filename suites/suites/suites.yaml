@@ -140,7 +140,7 @@ templates:
       enabled: true
 
   - &large_docker_volume_manager_blueprint_override
-    node_templates.properties.volume.properties.volume:
+    node_templates.volume.properties.volume:
       size: 1000
 
   - &more_inodes_manager_blueprint_override
