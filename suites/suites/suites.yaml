@@ -140,11 +140,11 @@ templates:
       enabled: true
 
   - &large_docker_volume_manager_blueprint_override
-    node_templates.manager.properties.volume.properties.volume:
+    node_templates.manager_data.properties.volume.properties.volume:
       size: 1000
 
   - &more_inodes_manager_blueprint_override
-    node_templates.manager.properties.manager_data.interfaces.lifecycle.configure.inputs:
+    node_templates.manager_data.properties.manager_data.interfaces.lifecycle.configure.inputs:
       script_path: https://raw.githubusercontent.com/cloudify-cosmo/cloudify-manager/increase-default-inode-size/resources/rest-service/cloudify/fs/mkfs.sh
 
   ######################################################
