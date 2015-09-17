@@ -139,6 +139,14 @@ templates:
     node_templates.manager.properties.cloudify.transient_deployment_workers_mode:
       enabled: true
 
+  - &large_docker_volume_manager_blueprint_override
+    node_templates.manager.properties.volume.properties.volume:
+      size: 1000
+
+  - &more_inodes_manager_blueprint_override
+    node_templates.manager.properties.manager_data.interfaces.lifecycle.configure.inputs:
+      script_path: https://raw.githubusercontent.com/cloudify-cosmo/cloudify-manager/increase-default-inode-size/resources/rest-service/cloudify/fs/mkfs.sh
+
   ######################################################
 
   - &openstack_plugin_external
@@ -407,6 +415,23 @@ handler_configurations:
 
   ############################################################################
 
+  stress_hp_openstack_system_tests3_region_a:
+    <<: *hp_openstack_handler_configuration
+    env: hp_openstack_system_tests3_region_a
+    properties: hp_openstack_region_a_properties
+    manager_blueprint_override:
+      <<: *openstack_manager_blueprint_override
+      <<: *more_inodes_manager_blueprint_override
+      <<: *large_docker_volume_manager_blueprint_override
+    inputs_override:
+      <<: *hp_openstack_credentials_inputs
+      <<: *hp_openstack_region_a_inputs
+      keystone_tenant_name: cloudify-cosmo-system-tests3
+      flavor_id: 203
+
+
+  ############################################################################
+
   hp_openstack_centos_system_tests3_region_b:
     <<: *hp_openstack_handler_configuration
     env: hp_openstack_system_tests3_region_b
@@ -598,6 +623,10 @@ tests:
         - cosmo_tester/test_suites/test_blueprints/nodecellar_test_autoheal.py
         - cosmo_tester/test_suites/test_blueprints/nodecellar_test_scale.py
 
+  stress:
+      tests:
+        - cosmo_tester/test_suites/stress_test_openstack
+
   manager_status:
     tests:
       - cosmo_tester/test_suites/test_manager_status
@@ -717,6 +746,14 @@ test_suites:
     handler_configuration: transient_deployment_workers_hp_openstack_system_tests3_region_a
     tests:
       - manager_recovery
+
+  #####################################################################
+
+  stress:
+    handler_configuration: stress_hp_openstack_system_tests3_region_a
+    tests:
+      - stress
+
 
   #####################################################################
 
