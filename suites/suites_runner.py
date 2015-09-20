@@ -458,7 +458,7 @@ def test_start():
                                 scheduling_interval=SCHEDULER_INTERVAL,
                                 optimize=True,
                                 after_suite_callback=copy_xunit_report,
-                                suite_timeout=60*60*5)
+                                suite_timeout=24*60*60*5)
     scheduler.run()
     return scheduler
 
