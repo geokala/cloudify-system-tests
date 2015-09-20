@@ -136,12 +136,10 @@ templates:
     <<: *aws_ec2_manager_blueprint_sg_override
 
   - &transient_deployment_workers_manager_blueprint_override
-    node_templates.manager.properties.cloudify.transient_deployment_workers_mode:
-      enabled: true
+    node_templates.manager.properties.cloudify.transient_deployment_workers_mode.enabled: true
 
   - &large_docker_volume_manager_blueprint_override
-    node_templates.volume.properties.volume:
-      size: 1000
+    node_templates.volume.properties.volume.size: 1000
 
   - &more_inodes_manager_blueprint_override
     node_templates.manager_data.interfaces.cloudify\.interfaces\.lifecycle.configure.inputs.script_path: https://raw.githubusercontent.com/cloudify-cosmo/cloudify-manager/increase-default-inode-size/resources/rest-service/cloudify/fs/mkfs.sh
@@ -422,6 +420,7 @@ handler_configurations:
       <<: *openstack_manager_blueprint_override
       <<: *more_inodes_manager_blueprint_override
       <<: *large_docker_volume_manager_blueprint_override
+      <<: *transient_deployment_workers_manager_blueprint_override
     inputs_override:
       <<: *hp_openstack_credentials_inputs
       <<: *hp_openstack_region_a_inputs
