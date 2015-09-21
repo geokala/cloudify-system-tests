@@ -25,6 +25,7 @@ import os
 import importlib
 import json
 from contextlib import contextmanager
+from retrying import retry
 
 import yaml
 from path import path
@@ -310,6 +311,7 @@ class TestCase(unittest.TestCase):
             blueprint_id=blueprint_id,
             blueprint_path=str(self.blueprint_yaml))
 
+    @retry(stop_max_delay=10000, stop_max_attempt_number=555)
     def create_deployment(
             self,
             blueprint_id,
