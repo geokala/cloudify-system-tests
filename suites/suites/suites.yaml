@@ -700,7 +700,11 @@ tests:
 
   stress:
       tests:
-        - cosmo_tester/test_suites/stress_test_openstack
+        - cosmo_tester/test_suites/stress_test_openstack/many_deployments_to_single_manager_test.py
+
+  stress_parallel:
+      tests:
+        - cosmo_tester/test_suites/stress_test_openstack/many_deployments_to_single_manager_parallel_test.py
 
   manager_status:
     tests:
@@ -843,6 +847,7 @@ test_suites:
     handler_configuration: stress_hp_openstack_system_tests3_region_a
     tests:
       - stress
+      - stress_parallel
 
   #####################################################################
 
