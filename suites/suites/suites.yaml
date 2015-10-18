@@ -847,6 +847,10 @@ test_suites:
     handler_configuration: stress_hp_openstack_system_tests3_region_a
     tests:
       - stress
+
+  stress_parallel:
+    handler_configuration: stress_hp_openstack_system_tests3_region_a
+    tests:
       - stress_parallel
 
   #####################################################################
