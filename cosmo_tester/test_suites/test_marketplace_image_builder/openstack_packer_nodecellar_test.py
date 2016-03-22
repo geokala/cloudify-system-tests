@@ -26,5 +26,8 @@ class OpenstackNodecellarTest(NodecellarAppTest, AbstractPackerTest):
 
     def test_nodecellar_single_host(self):
         self.build_with_packer(only='openstack')
+        self.deploy_image_openstack()
+        import time
+        time.sleep(60)
         # TODO: Configure blueprint
         # TODO: Deploy and test nodecellar (check singlehost approach)

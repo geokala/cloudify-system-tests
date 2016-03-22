@@ -80,7 +80,7 @@ class AbstractPackerTest(object):
 
         return image_id
 
-    def _deploy_image_aws(self):
+    def deploy_image_aws(self):
         # TODO
         raise NotImplementedError()
 
@@ -139,9 +139,12 @@ class AbstractPackerTest(object):
 
         return image_id
 
-    def _deploy_image_openstack(self):
+    def deploy_image_openstack(self):
         blueprint_path = self.copy_blueprint('openstack-start-vm')
-        self.openstack_blueprint_yaml = blueprint_path / 'blueprint.yaml'
+        self.openstack_blueprint_yaml = os.path.join(
+            blueprint_path,
+            'blueprint.yaml'
+        )
         self.prefix = 'packer-system-test-{0}'.format(self.test_id)
         self.manager_blueprint_overrides = {}
 
@@ -165,7 +168,7 @@ class AbstractPackerTest(object):
         self.logger.info('initialize local env for running the '
                          'blueprint that starts a vm')
         self.openstack_manager_env = local.init_env(
-            self.blueprint_yaml,
+            self.openstack_blueprint_yaml,
             inputs=self.inputs,
             name=self._testMethodName,
             ignored_modules=cli_constants.IGNORED_LOCAL_WORKFLOW_MODULES
@@ -187,6 +190,7 @@ class AbstractPackerTest(object):
         self.addCleanup(self._undeploy_image_openstack)
 
     def _undeploy_image_openstack(self):
+        # Private method as it is used for cleanup
         self.openstack_manager_env.execute('uninstall',
                                            task_retries=40,
                                            task_retry_interval=30)
