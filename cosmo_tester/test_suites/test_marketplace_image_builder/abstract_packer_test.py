@@ -148,7 +148,7 @@ class AbstractPackerTest(object):
         self.prefix = 'packer-system-test-{0}'.format(self.test_id)
         self.manager_blueprint_overrides = {}
 
-        self.inputs = {
+        self.openstack_inputs = {
             'prefix': self.prefix,
             'external_network': self.env.cloudify_config[
                 'openstack_external_network_name'],
@@ -169,7 +169,7 @@ class AbstractPackerTest(object):
                          'blueprint that starts a vm')
         self.openstack_manager_env = local.init_env(
             self.openstack_blueprint_yaml,
-            inputs=self.inputs,
+            inputs=self.openstack_inputs,
             name=self._testMethodName,
             ignored_modules=cli_constants.IGNORED_LOCAL_WORKFLOW_MODULES
         )
@@ -180,10 +180,10 @@ class AbstractPackerTest(object):
                                            task_retry_interval=30)
 
         outputs = self.openstack_manager_env.outputs()
-        self.openstack_public_ip_address = outputs[
+        self.openstack_manager_public_ip = outputs[
             'simple_vm_public_ip_address'
         ]
-        self.openstack_private_ip_address = outputs[
+        self.openstack_manager_private_ip = outputs[
             'simple_vm_private_ip_address'
         ]
 
@@ -251,7 +251,7 @@ class AbstractPackerTest(object):
         return repo_path
 
     def _build_inputs(self, destination_path, name_prefix):
-        openstack_url = self.env.cloudify_config['keystone_url']
+        openstack_url = self.env.cloudify_config.get('keystone_url')
         if openstack_url is not None:
             # TODO: Do a join on this if the URL doesn't have 2.0 already
             openstack_url += '/v2.0/'
