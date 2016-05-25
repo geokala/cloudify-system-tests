@@ -15,7 +15,9 @@
 
 import json
 import os
+import paramiko
 import shutil
+import socket
 import subprocess
 import tempfile
 import time
@@ -43,6 +45,39 @@ SUPPORTED_ENVS = [
 
 
 class AbstractPackerTest(object):
+
+    def wait_for_config_to_finish(self, client, timeout=600):
+        current_time = 0
+        finished = False
+        while not finished and current_time < timeout:
+            executions = client.executions.list().items
+            for execution in executions:
+                if (
+                    execution['deployment_id'] == 'config' and
+                    execution['workflow_id'] == 'install' and
+                    execution['status'] == 'terminated'
+                ):
+                    return
+            time.sleep(3)
+            current_time += 3
+        raise RuntimeError(
+            'config deployment install workflow did not finish in '
+            '{timeout} seconds.'.format(timeout=timeout)
+        )
+
+    def get_ssh_host_key(self, host):
+        # Prepare the connection
+        conn = socket.create_connection((host, 22))
+        # Connect without trying to authenticate
+        ssh_conn = paramiko.Transport(conn)
+        ssh_conn.connect()
+
+        # Get the server key from the ssh connection
+        host_key = ssh_conn.get_remote_server_key().get_base64()
+
+        ssh_conn.close()
+        conn.close()
+        return host_key
 
     def _find_images(self):
         finders = {

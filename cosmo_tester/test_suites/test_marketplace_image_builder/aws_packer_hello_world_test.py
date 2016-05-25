@@ -56,6 +56,13 @@ class AWSHelloWorldTest(AbstractHelloWorldTest, AbstractPackerTest):
                 # Timeout
                 pass
 
+        template_key = self.get_ssh_host_key(self.aws_manager_public_ip)
+        self.logger.info(
+            'Template was deployed with SSH host key: {key}'.format(
+                key=template_key,
+            )
+        )
+
         conf = self.env.cloudify_config
 
         self.aws_agents_secgroup = 'marketplace-system-tests-security-group'
@@ -128,6 +135,20 @@ class AWSHelloWorldTest(AbstractHelloWorldTest, AbstractPackerTest):
                     self.logger.warn(
                         'Saw error {}. Retrying.'.format(str(err))
                     )
+
+        # TODO: Move logger lines to method?
+        self.logger.info('Waiting for config install workflow to finish...')
+        self.wait_for_config_to_finish(self.client)
+        self.logger.info('...workflow finished.')
+        post_config_key = self.get_ssh_host_key(self.aws_manager_public_ip)
+        self.logger.info(
+            'Template was reconfigured with SSH host key: {key}'.format(
+                key=post_config_key,
+            )
+        )
+
+        assert template_key != post_config_key, \
+            'SSH host key did not change when configuration blueprint ran.'
 
         self.cfy = CfyHelper(management_ip=self.aws_manager_public_ip)
 
