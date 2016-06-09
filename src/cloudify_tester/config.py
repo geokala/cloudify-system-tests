@@ -107,3 +107,8 @@ class Config(object):
 
     def items(self):
         return self._generate_config().items()
+
+# TODO: Make this be a file in the package
+default_schemas = [
+    'schema.yaml',
+]
