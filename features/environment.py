@@ -1,9 +1,12 @@
 # TODO: Actually make a logger
 import logging
 
+from behave.log_capture import capture
 from cloudify_tester import config as cloudify_tester_config
 
 
+# Use the capture decorator to ensure we output warnings logged loading config
+@capture
 def before_all(context):
     conf_file_path = context.config.userdata.get('config', 'test_config.yaml')
     schema_paths = context.config.userdata.get('schemas', None)
