@@ -1,3 +1,5 @@
+import pkgutil
+
 import yaml
 
 
@@ -35,8 +37,12 @@ class Config(object):
         self.check_config_is_valid()
 
     def update_schema(self, schema_file):
-        with open(schema_file) as schema_handle:
-            schema = yaml.load(schema_handle.read())
+        if isinstance(schema_file, dict):
+            # This is already a dict, just use it
+            schema = schema_file
+        else:        
+            with open(schema_file) as schema_handle:
+                schema = yaml.load(schema_handle.read())
 
         # Make sure the schema is entirely valid- every entry must have a
         # description
@@ -108,7 +114,8 @@ class Config(object):
     def items(self):
         return self._generate_config().items()
 
-# TODO: Make this be a file in the package
 default_schemas = [
-    'schema.yaml',
+    yaml.load(
+        pkgutil.get_data('cloudify_tester', 'schemas/base_schema.yaml')
+    )
 ]
