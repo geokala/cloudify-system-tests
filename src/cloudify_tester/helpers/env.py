@@ -45,4 +45,4 @@ class TestEnvironment(object):
                 )
             )
         else:
-            subprocess.check_call(['rm', '-rf', self.workdir])
+            check_call(['rm', '-rf', self.workdir])
