@@ -3,6 +3,7 @@ import logging
 
 from behave.log_capture import capture
 from cloudify_tester import config as cloudify_tester_config
+from cloudify_tester.helpers.env import TestEnvironment
 
 
 # Use the capture decorator to ensure we output warnings logged loading config
@@ -22,3 +23,12 @@ def before_all(context):
     )
 
     context.tester_conf = tester_conf
+
+    context.env = TestEnvironment()
+    cli_version = tester_conf['cli_version']
+    context.env.start(cloudify_version=cli_version)
+
+@capture
+def after_all(context):
+    if not context.tester_conf['keep_workdir']:
+        context.env.teardown()

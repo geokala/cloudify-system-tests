@@ -1,4 +1,6 @@
-real:
-  description: I like cake.
-broken:
-  description: Not broken now. Change name of this key to break.
+cli_version:
+  description: Version of cloudify CLI to use in workdir. Default is most recent as understood by pip.
+  default: null
+keep_workdir:
+  description: Whether to keep the workdir when the test ends. Don't keep it by default.  # TODO: Make two options- keep_workdir_on_fail and keep_workdir_on_success
+  default: false
