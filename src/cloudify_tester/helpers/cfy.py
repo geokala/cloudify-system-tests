@@ -10,14 +10,17 @@ class CfyHelper(object):
 
     def _exec(self, command, install_plugins=False):
         prepared_command = ['bin/cfy']
+        prepared_command.extend(command)
         if install_plugins:
             prepared_command.append('--install-plugins')
-        prepared_command.extend(command)
+        # TODO: Logging
+        print(prepared_command)
         check_output(prepared_command, cwd=self.workdir)
 
     def create_inputs(self, inputs_dict, inputs_name='inputs.yaml'):
         inputs_yaml = yaml.dump(inputs_dict)
-        with open(os.path.join(self.workdir, inputs_name)) as inputs_handle:
+        with open(os.path.join(self.workdir, inputs_name),
+                  'w') as inputs_handle:
             inputs_handle.write(inputs_yaml)
 
     def local_init(self, blueprint_path, inputs_path, install_plugins=False):
