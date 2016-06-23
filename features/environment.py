@@ -24,12 +24,14 @@ def before_all(context):
 
     context.tester_conf = tester_conf
 
+@capture
+def before_feature(context, feature):
     context.env = TestEnvironment()
-    cli_version = tester_conf['cli_version']
+    cli_version = context.tester_conf['cli_version']
     context.env.start(cloudify_version=cli_version)
 
 @capture
-def after_all(context):
+def after_feature(context, feature):
     if context.failed:
         if context.tester_conf['cleanup_on_failure']:
             cleanup = True

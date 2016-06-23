@@ -3,6 +3,8 @@ import yaml
 
 @given('I create inputs file {inputs_file} with inputs')
 def cfy_create_inputs(context, inputs_file):
+    inputs = context.text.format(**context.tester_conf)
+
     inputs = yaml.load(context.text)
 
     context.env.cfy.create_inputs(inputs_dict=inputs,
