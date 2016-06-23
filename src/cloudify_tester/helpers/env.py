@@ -41,7 +41,14 @@ class TestEnvironment(object):
             cleanup['kwargs'] = kwargs
         self._cleanups.append(cleanup)
 
-    def teardown(self):
+    def teardown(self, run_cleanup=True):
+        # TODO:
+        # run_cleanup == False should cause cleanup functions to just say what
+        # they were trying to do into a file in the workdir, but for now we'll
+        # just abort if it's set
+        if not run_cleanup:
+            return
+
         for cleanup in self._cleanups:
             func = cleanup['function']
             args = cleanup.get('args', [])

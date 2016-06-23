@@ -102,7 +102,8 @@ class Config(object):
                 )
             else:
                 raise KeyError(
-                    'Config entry {key} was not supplied.'.format(key=item)
+                    'Config entry {key} was not supplied and is not in '
+                    'schema.'.format(key=item)
                 )
 
     def keys(self):

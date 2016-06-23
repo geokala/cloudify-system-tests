@@ -30,5 +30,11 @@ def before_all(context):
 
 @capture
 def after_all(context):
-    if not context.tester_conf['keep_workdir']:
-        context.env.teardown()
+    if context.failed:
+        if context.tester_conf['cleanup_on_failure']:
+            cleanup = True
+        else:
+            cleanup = False
+    else:
+        cleanup = context.tester_conf['cleanup_on_success']
+    context.env.teardown(run_cleanup=cleanup)
