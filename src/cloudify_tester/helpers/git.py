@@ -12,7 +12,9 @@ class GitHelper(object):
 
         repo_path = os.path.join(self.workdir, repo_path)
 
-        return check_output(prepared_command, cwd=repo_path)
+        result = check_output(prepared_command, cwd=repo_path)
+        print(result)
+        return(result)
 
     def clone(self, repository, clone_to=None):
         if not clone_to:
