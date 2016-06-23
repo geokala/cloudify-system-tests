@@ -10,4 +10,4 @@ Feature: Local blueprint testing
     When I init a local env using funkyhat/suites/local/simple_blueprint/blueprint.yaml with inputs from test.yaml
      And I execute the local install workflow
     Then I see the file /tmp/ilikecake exists
-
+     And after I finish I will remove test.yaml and its parent directory /tmp/ilikecake

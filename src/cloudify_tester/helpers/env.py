@@ -14,6 +14,7 @@ class TestEnvironment(object):
     cfy = None
     git = None
     pip = None
+    _cleanups = []
 
     def start(self, cloudify_version=None):
         self.workdir = tempfile.mkdtemp()
@@ -30,9 +31,22 @@ class TestEnvironment(object):
             cloudify = 'cloudify'
         self.pip.install(cloudify)
 
+    def add_cleanup(self, function, args=None, kwargs=None):
+        cleanup = {
+            'function': function,
+        }
+        if args is not None:
+            cleanup['args'] = args
+        if kwargs is not None:
+            cleanup['kwargs'] = kwargs
+        self._cleanups.append(cleanup)
+
     def teardown(self):
-        # TODO: Facility to add cleanup methods to the class, which will be
-        # provided with the workdir as an argument?
+        for cleanup in self._cleanups:
+            func = cleanup['function']
+            args = cleanup.get('args', [])
+            kwargs = cleanup.get('kwargs', {})
+            func(*args, **kwargs)
 
         # This will break on a Mac (and Windows), so should have a better
         # check, but it probably wants something just to avoid major pain on
