@@ -4,15 +4,27 @@ from subprocess import check_output
 import yaml
 
 
-class CfyHelper(object):
+class CfyHelperBase(object):
     def __init__(self, workdir):
-        self._executor = CfyHelperExecutor(workdir=workdir)
-        self._exec = self._executor.execute
         self.workdir = workdir
-        self.local = CfyLocalHelper(run=self._exec)
-        self.blueprints = CfyBlueprintsHelper(run=self._exec)
-        self.deployments = CfyDeploymentsHelper(run=self._exec)
-        self.executions = CfyExecutionsHelper(run=self._exec)
+
+    def _exec(self, command, install_plugins=False):
+        prepared_command = ['bin/cfy']
+        prepared_command.extend(command)
+        if install_plugins:
+            prepared_command.append('--install-plugins')
+        # TODO: Logging
+        print(' '.join(prepared_command))
+        check_output(prepared_command, cwd=self.workdir)
+
+
+class CfyHelper(CfyHelperBase):
+    def __init__(self, workdir):
+        super(CfyHelper, self).__init__(workdir=workdir)
+        self.local = _CfyLocalHelper(workdir=workdir)
+        self.blueprints = _CfyBlueprintsHelper(workdir=workdir)
+        self.deployments = _CfyDeploymentsHelper(workdir=workdir)
+        self.executions = _CfyExecutionsHelper(workdir=workdir)
 
     def create_inputs(self, inputs_dict, inputs_name='inputs.yaml'):
         inputs_yaml = yaml.dump(inputs_dict)
@@ -40,24 +52,7 @@ class CfyHelper(object):
         return self._exec(command)
 
 
-class CfyHelperExecutor(object):
-    def __init__(self, workdir):
-        self.workdir = workdir
-
-    def execute(self, command, install_plugins=False):
-        prepared_command = ['bin/cfy']
-        prepared_command.extend(command)
-        if install_plugins:
-            prepared_command.append('--install-plugins')
-        # TODO: Logging
-        print(' '.join(prepared_command))
-        check_output(prepared_command, cwd=self.workdir)
-
-
-class CfyLocalHelper(object):
-    def __init__(self, run):
-        self._exec = run
-
+class _CfyLocalHelper(CfyHelperBase):
     def init(self, blueprint_path, inputs_path, install_plugins=False):
         return self._exec(
             [
@@ -72,10 +67,7 @@ class CfyLocalHelper(object):
         return self._exec(['local', 'execute', '--workflow', workflow])
 
 
-class CfyBlueprintsHelper(object):
-    def __init__(self, run):
-        self._exec = run
-
+class _CfyBlueprintsHelper(CfyHelperBase):
     def upload(self, blueprint_path, blueprint_id, validate=False):
         command = [
             'blueprints', 'upload',
@@ -93,10 +85,7 @@ class CfyBlueprintsHelper(object):
         ])
 
 
-class CfyDeploymentsHelper(object):
-    def __init__(self, run):
-        self._exec = run
-
+class _CfyDeploymentsHelper(CfyHelperBase):
     def create(self, blueprint_id, deployment_id, inputs_path=None):
         command = [
             'deployments', 'create',
@@ -117,10 +106,7 @@ class CfyDeploymentsHelper(object):
         return self._exec(command)
 
 
-class CfyExecutionsHelper(object):
-    def __init__(self, run):
-        self._exec = run
-
+class _CfyExecutionsHelper(CfyHelperBase):
     def start(self, deployment_id, workflow, timeout=900):
         command = [
             'executions', 'start',
