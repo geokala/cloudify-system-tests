@@ -1,2 +1,1 @@
-real: yes
-fake: no
+keep_workdir: true

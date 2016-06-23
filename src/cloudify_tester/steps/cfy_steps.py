@@ -10,7 +10,7 @@ def cfy_create_inputs(context, inputs_file):
 
 @when('I init a local env using {blueprint} with inputs from {inputs_path}')
 def cfy_local_init(context, blueprint, inputs_path):
-    context.env.cfy.local_init(
+    context.env.cfy.local.init(
         blueprint_path=blueprint,
         inputs_path=inputs_path,
         install_plugins=True,
@@ -18,4 +18,4 @@ def cfy_local_init(context, blueprint, inputs_path):
 
 @when('I execute the local {workflow} workflow')
 def cfy_local_exec(context, workflow):
-    context.env.cfy.local_execute(workflow=workflow)
+    context.env.cfy.local.execute(workflow=workflow)
