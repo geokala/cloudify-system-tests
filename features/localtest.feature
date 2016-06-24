@@ -1,5 +1,5 @@
 Feature: Local blueprint testing
-
+  @local
   Scenario: Use Funkyhat's blueprint
     Given I can clone https://github.com/funkyhat/cloudify-system-tests.git to funkyhat with git and checkout pytest-poc
       And I create inputs file test.yaml with inputs

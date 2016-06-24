@@ -13,6 +13,7 @@ class GitHelper(object):
         repo_path = os.path.join(self.workdir, repo_path)
 
         result = check_output(prepared_command, cwd=repo_path)
+        print(' '.join(prepared_command))
         print(result)
         return(result)
 

@@ -15,6 +15,10 @@ class TestEnvironment(object):
     git = None
     pip = None
     _cleanups = []
+    manager_bootstrap_completed = False
+    blueprints = []
+    deployments = []
+    deployments_outputs = {}
 
     def start(self, cloudify_version=None):
         self.workdir = tempfile.mkdtemp()
@@ -46,10 +50,14 @@ class TestEnvironment(object):
         # run_cleanup == False should cause cleanup functions to just say what
         # they were trying to do into a file in the workdir, but for now we'll
         # just abort if it's set
+        # TODO: Have separate flag to keep workdir, as that's where we'll dump
+        # logs (as well as stdout depending on config setting)
         if not run_cleanup:
             return
 
-        for cleanup in self._cleanups:
+        # Cleanups should be run in reverse to clean up the last entity that
+        # was added to the stack first
+        for cleanup in reversed(self._cleanups):
             func = cleanup['function']
             args = cleanup.get('args', [])
             kwargs = cleanup.get('kwargs', {})

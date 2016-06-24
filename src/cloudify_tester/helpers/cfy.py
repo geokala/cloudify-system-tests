@@ -1,3 +1,4 @@
+from copy import copy
 import os
 from subprocess import check_output
 
@@ -10,12 +11,21 @@ class CfyHelperBase(object):
 
     def _exec(self, command, install_plugins=False):
         prepared_command = ['bin/cfy']
+        command = [str(component) for component in command]
         prepared_command.extend(command)
         if install_plugins:
             prepared_command.append('--install-plugins')
         # TODO: Logging
         print(' '.join(prepared_command))
-        check_output(prepared_command, cwd=self.workdir)
+        # TODO: Migrate this out to a shared function configured by TestEnv,
+        # and make it dump any new env settings in a sourcable file
+        os_env = copy(os.environ)
+        path = os_env.get('PATH')
+        path = path.split(':')
+        path.insert(0, 'bin')
+        path = ':'.join(path)
+        os_env['PATH'] = path
+        check_output(prepared_command, cwd=self.workdir, env=os_env)
 
 
 class CfyHelper(CfyHelperBase):
