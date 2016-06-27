@@ -1,6 +1,7 @@
 from copy import copy
 import os
 from subprocess import check_output
+import time
 
 import yaml
 
@@ -9,7 +10,8 @@ class CfyHelperBase(object):
     def __init__(self, workdir):
         self.workdir = workdir
 
-    def _exec(self, command, install_plugins=False):
+    def _exec(self, command, install_plugins=False,
+              retries=3, retry_delay=3):
         prepared_command = ['bin/cfy']
         command = [str(component) for component in command]
         prepared_command.extend(command)
@@ -25,7 +27,11 @@ class CfyHelperBase(object):
         path.insert(0, 'bin')
         path = ':'.join(path)
         os_env['PATH'] = path
-        check_output(prepared_command, cwd=self.workdir, env=os_env)
+        for i in range(0, retries):
+            try:
+                check_output(prepared_command, cwd=self.workdir, env=os_env)
+            except:
+                time.sleep(retry_delay)
 
 
 class CfyHelper(CfyHelperBase):
