@@ -1,10 +1,10 @@
 import os
-from subprocess import check_output
 
 
 class GitHelper(object):
-    def __init__(self, workdir):
+    def __init__(self, workdir, executor):
         self.workdir = workdir
+        self._executor = executor
 
     def _exec(self, command, repo_path):
         prepared_command = ['git']
@@ -12,10 +12,7 @@ class GitHelper(object):
 
         repo_path = os.path.join(self.workdir, repo_path)
 
-        result = check_output(prepared_command, cwd=repo_path)
-        print(' '.join(prepared_command))
-        print(result)
-        return(result)
+        self._executor(prepared_command, cwd=repo_path)
 
     def clone(self, repository, clone_to=None):
         if not clone_to:
@@ -28,7 +25,7 @@ class GitHelper(object):
             os.mkdir(path)
 
         # We clone to 'current dir' in the repo path to simplify self._exec
-        return self._exec(['clone', repository, '.'], repo_path=clone_to)
+        self._exec(['clone', repository, '.'], repo_path=clone_to)
 
     def checkout(self, repo_path, checkout):
-        return self._exec(['checkout', checkout], repo_path=repo_path)
+        self._exec(['checkout', checkout], repo_path=repo_path)

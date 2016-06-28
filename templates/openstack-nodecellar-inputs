@@ -1,0 +1,3 @@
+image: '{openstack_ubuntu_14_04_image_id}'
+flavor: '{openstack_large_flavor_id}'
+agent_user: '{openstack_ubuntu_agents_user}'

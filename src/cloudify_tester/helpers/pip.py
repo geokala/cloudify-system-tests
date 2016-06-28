@@ -1,17 +1,12 @@
-import os
-from subprocess import check_output
-
-import yaml
-
-
 class PipHelper(object):
-    def __init__(self, workdir):
+    def __init__(self, workdir, executor):
         self.workdir = workdir
+        self._executor = executor
 
     def _exec(self, command, install_plugins=False):
         prepared_command = ['bin/pip']
         prepared_command.extend(command)
-        check_output(prepared_command, cwd=self.workdir)
+        self._executor(prepared_command)
 
     def install(self, packages):
         if not isinstance(packages, list):

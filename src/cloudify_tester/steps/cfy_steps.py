@@ -6,9 +6,11 @@ import yaml
 import os
 
 
-@step('I create inputs file {inputs_file} with inputs')
-def cfy_create_inputs(context, inputs_file):
-    inputs = context.text.format(**context.tester_conf)
+@step('I create inputs file {inputs_file} from template {template_name}')
+def cfy_create_inputs(context, inputs_file, template_name):
+    template_path = os.path.join('templates', template_name)
+    with open(template_path) as template_handle:
+        inputs = template_handle.read().format(**context.tester_conf)
 
     inputs = yaml.load(inputs)
 
@@ -36,9 +38,10 @@ def cfy_init(context):
 
 
 @given('I have a manager created from {blueprint} from a checkout of '
-       '{checkout} on {git_repo} with inputs')
-def cfy_bootstrap_once(context, blueprint, checkout, git_repo):
+       '{checkout} on {git_repo} with inputs from template {template_name}')
+def cfy_bootstrap_once(context, blueprint, checkout, git_repo, template_name):
     if context._env.manager_bootstrap_completed:
+        print('I did this earlier!')
         return
 
     git_clone_and_checkout(
@@ -47,7 +50,11 @@ def cfy_bootstrap_once(context, blueprint, checkout, git_repo):
         destination='manager_blueprints',
         checkout=checkout,
     )
-    cfy_create_inputs(context, inputs_file='bootstrap.yaml')
+    cfy_create_inputs(
+        context,
+        inputs_file='bootstrap.yaml',
+        template_name=template_name,
+    )
     context._env.cfy.init()
     context._env.cfy.bootstrap(
         blueprint_path=os.path.join('manager_blueprints', blueprint),
@@ -117,9 +124,10 @@ def cfy_executions_start(context, workflow, deployment_id):
 
 
 @given('I have a deployment called {deployment_name} from {blueprint} from a '
-       'checkout of {checkout} on {git_repo} with inputs')
+       'checkout of {checkout} on {git_repo} with inputs from template '
+       '{template_name}')
 def cfy_upload_create_and_deploy_once(context, deployment_name, blueprint,
-                                      checkout, git_repo):
+                                      checkout, git_repo, template_name):
     if deployment_name in context._env.blueprints:
         # We've already done this
         # TODO: Fix git cloning and then stop using this
@@ -138,7 +146,8 @@ def cfy_upload_create_and_deploy_once(context, deployment_name, blueprint,
     )
     cfy_create_inputs(
         context,
-        inputs_file=inputs_file_name,
+        inputs_file='bootstrap.yaml',
+        template_name=template_name,
     )
     # TODO: This can probably be done using the cfy install(?) command
     cfy_blueprints_upload(

@@ -1,14 +1,12 @@
-from copy import copy
 import os
-from subprocess import check_output
-import time
 
 import yaml
 
 
 class CfyHelperBase(object):
-    def __init__(self, workdir):
+    def __init__(self, workdir, executor):
         self.workdir = workdir
+        self._executor = executor
 
     def _exec(self, command, install_plugins=False,
               retries=3, retry_delay=3):
@@ -17,30 +15,30 @@ class CfyHelperBase(object):
         prepared_command.extend(command)
         if install_plugins:
             prepared_command.append('--install-plugins')
-        # TODO: Logging
-        print(' '.join(prepared_command))
-        # TODO: Migrate this out to a shared function configured by TestEnv,
-        # and make it dump any new env settings in a sourcable file
-        os_env = copy(os.environ)
-        path = os_env.get('PATH')
-        path = path.split(':')
-        path.insert(0, 'bin')
-        path = ':'.join(path)
-        os_env['PATH'] = path
-        for i in range(0, retries):
-            try:
-                check_output(prepared_command, cwd=self.workdir, env=os_env)
-            except:
-                time.sleep(retry_delay)
+        self._executor(
+            prepared_command,
+            retries=retries,
+            retry_delay=retry_delay,
+            path_prepends=['bin'],
+        )
 
 
 class CfyHelper(CfyHelperBase):
-    def __init__(self, workdir):
-        super(CfyHelper, self).__init__(workdir=workdir)
-        self.local = _CfyLocalHelper(workdir=workdir)
-        self.blueprints = _CfyBlueprintsHelper(workdir=workdir)
-        self.deployments = _CfyDeploymentsHelper(workdir=workdir)
-        self.executions = _CfyExecutionsHelper(workdir=workdir)
+    def __init__(self, workdir, executor):
+        super(CfyHelper, self).__init__(workdir=workdir, executor=executor)
+        self.local = _CfyLocalHelper(workdir=workdir, executor=executor)
+        self.blueprints = _CfyBlueprintsHelper(
+            workdir=workdir,
+            executor=executor
+        )
+        self.deployments = _CfyDeploymentsHelper(
+            workdir=workdir,
+            executor=executor,
+        )
+        self.executions = _CfyExecutionsHelper(
+            workdir=workdir,
+            executor=executor,
+        )
 
     def create_inputs(self, inputs_dict, inputs_name='inputs.yaml'):
         inputs_yaml = yaml.dump(inputs_dict)

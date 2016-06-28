@@ -1,6 +1,6 @@
 from cloudify_tester import cleanups
 
-from behave import then
+from behave import then, step
 
 import os
 
@@ -31,4 +31,8 @@ def do_other(context):
     context._env.blueprints.append('biscuits')
     print(context._env.blueprints)
     print(context._env.cloudify_bootstrap_completed)
+    assert False
+
+@step('I fail a step')
+def fail_step(context):
     assert False
