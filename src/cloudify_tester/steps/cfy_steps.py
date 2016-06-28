@@ -146,7 +146,7 @@ def cfy_upload_create_and_deploy_once(context, deployment_name, blueprint,
     )
     cfy_create_inputs(
         context,
-        inputs_file='bootstrap.yaml',
+        inputs_file='nodecellar.yaml',
         template_name=template_name,
     )
     # TODO: This can probably be done using the cfy install(?) command

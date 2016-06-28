@@ -28,15 +28,18 @@ def before_all(context):
 def before_feature(context, feature):
     context._env = TestEnvironment()
     cli_version = context.tester_conf['cli_version']
-    context._env.start(cloudify_version=cli_version)
+    context._env.start(
+        cloudify_version=cli_version,
+        logging_level=context.tester_conf['logging_level'],
+        log_to_console=context.tester_conf['log_to_console'],
+    )
 
 @capture
 def after_feature(context, feature):
     if context.failed:
-        if context.tester_conf['cleanup_on_failure']:
-            cleanup = True
-        else:
-            cleanup = False
+        cleanup = context.tester_conf['cleanup_on_failure']
+        remove_workdir = context.tester_conf['remove_workdir_on_failure']
     else:
         cleanup = context.tester_conf['cleanup_on_success']
-    context._env.teardown(run_cleanup=cleanup)
+        remove_workdir = context.tester_conf['remove_workdir_on_success']
+    context._env.teardown(run_cleanup=cleanup, remove_workdir=remove_workdir)

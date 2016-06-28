@@ -1,6 +1,7 @@
 from cloudify_tester.helpers.git import GitHelper
 from cloudify_tester.helpers.cfy import CfyHelper
 from cloudify_tester.helpers.pip import PipHelper
+from cloudify_tester.helpers.logger import TesterLogger
 
 from copy import copy
 import os
@@ -23,8 +24,20 @@ class TestEnvironment(object):
     deployments = []
     deployments_outputs = {}
 
-    def start(self, cloudify_version=None):
+    def start(self,
+              cloudify_version=None,
+              logging_level='debug',
+              log_to_console=False):
         self.workdir = tempfile.mkdtemp()
+
+        # Set up logger
+        self.logger = TesterLogger(self.workdir)
+        self.logger.file_logging_set_level(logging_level)
+        if log_to_console:
+            self.logger.console_logging_set_level(logging_level)
+        else:
+            self.logger.console_logging_disable()
+
         self.cfy = CfyHelper(workdir=self.workdir, executor=self.executor)
         self.git = GitHelper(workdir=self.workdir, executor=self.executor)
         self.pip = PipHelper(workdir=self.workdir, executor=self.executor)
@@ -48,23 +61,20 @@ class TestEnvironment(object):
             cleanup['kwargs'] = kwargs
         self._cleanups.append(cleanup)
 
-    def teardown(self, run_cleanup=True):
-        # TODO:
-        # run_cleanup == False should cause cleanup functions to just say what
-        # they were trying to do into a file in the workdir, but for now we'll
-        # just abort if it's set
-        # TODO: Have separate flag to keep workdir, as that's where we'll dump
-        # logs (as well as stdout depending on config setting)
-        if not run_cleanup:
-            return
-
+    def teardown(self, run_cleanup=True, remove_workdir=True):
         # Cleanups should be run in reverse to clean up the last entity that
         # was added to the stack first
         for cleanup in reversed(self._cleanups):
             func = cleanup['function']
             args = cleanup.get('args', [])
             kwargs = cleanup.get('kwargs', {})
-            func(*args, **kwargs)
+            kwargs['fake_run'] = run_cleanup
+            result = func(*args, **kwargs)
+            if not run_cleanup:
+                with open('cleanup_intent.log', 'a') as cleanup_intent_handle:
+                    cleanup_intent_handle.write('{command}\n'.format(
+                        command=result,
+                    ))
 
         # This will break on a Mac (and Windows), so should have a better
         # check, but it probably wants something just to avoid major pain on
@@ -77,10 +87,12 @@ class TestEnvironment(object):
                 )
             )
         else:
-            self.executor(['rm', '-rf', self.workdir], cwd='/tmp')
+            fake = not remove_workdir
+            self.executor(['rm', '-rf', self.workdir], cwd='/tmp', fake=fake)
 
     def executor(self, command, path_prepends=None, env_var_overrides=None,
-                 retries=3, retry_delay=3, cwd=None):
+                 retries=3, retry_delay=3, cwd=None, fake=False,
+                 expected_return_codes=(0,)):
         if env_var_overrides is None:
             env_var_overrides = {}
         if path_prepends is None:
@@ -103,8 +115,24 @@ class TestEnvironment(object):
             os_env[k] = v
         # TODO: Dump current env vars to a file that can be dot sourced
 
+        run_message = 'Running {command} in {directory} with {env}'
+        if fake:
+            run_message = 'Asked for: ' + run_message
+            return run_message.format(
+                command=' '.join(command),
+                directory=cwd,
+                env=os_env,
+            )
+
         for i in range(0, retries):
             try:
+                self.logger.info(
+                    run_message.format(
+                        command=' '.join(command),
+                        directory=cwd,
+                        env=os_env,
+                    )
+                )
                 process = subprocess.Popen(
                     command,
                     cwd=cwd,
@@ -113,16 +141,22 @@ class TestEnvironment(object):
                     stderr=subprocess.PIPE,
                 )
                 while process.returncode is None:
-                    # TODO: This should use logger
-                    for line in process.stdout.readlines():
-                        print(line.rstrip())
-                    for line in process.stderr.readlines():
-                        print(line.rstrip())
+                    self._log_process_output(process)
                     process.poll()
-                for line in process.stdout.readlines():
-                    print(line.rstrip())
-                for line in process.stderr.readlines():
-                    print(line.rstrip())
-                return process.returncode
+                self._log_process_output(process)
+                if process.returncode in expected_return_codes:
+                    break
+                else:
+                    time.sleep(retry_delay)
             except:
-                time.sleep(retry_delay)
+                self.logger.exception('Command {command} failed:'.format(
+                    command=' '.join(command),
+                ))
+                raise
+        return process.returncode
+
+    def _log_process_output(self, process):
+        for line in process.stdout.readlines():
+            self.logger.info(line.rstrip('\n'))
+        for line in process.stderr.readlines():
+            self.logger.error(line.rstrip('\n'))
