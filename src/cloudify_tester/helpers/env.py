@@ -68,7 +68,7 @@ class TestEnvironment(object):
             func = cleanup['function']
             args = cleanup.get('args', [])
             kwargs = cleanup.get('kwargs', {})
-            kwargs['fake_run'] = run_cleanup
+            kwargs['fake_run'] = not run_cleanup
             result = func(*args, **kwargs)
             if not run_cleanup:
                 with open('cleanup_intent.log', 'a') as cleanup_intent_handle:
