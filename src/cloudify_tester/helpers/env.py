@@ -71,7 +71,9 @@ class TestEnvironment(object):
             kwargs['fake_run'] = not run_cleanup
             result = func(*args, **kwargs)
             if not run_cleanup:
-                with open('cleanup_intent.log', 'a') as cleanup_intent_handle:
+                cleanup_intent_path = os.path.join(self.workdir,
+                                                   'cleanup_intent.log')
+                with open(cleanup_intent_path, 'a') as cleanup_intent_handle:
                     cleanup_intent_handle.write('{command}\n'.format(
                         command=result,
                     ))
