@@ -17,6 +17,8 @@ setup(
         'console_scripts': [
             'show_config_schema = '
             'cloudify_tester.config_display:show_config_schema',
+            'get_plugin_tests = '
+            'cloudify_tester.get_plugin_tests:get_plugin_tests',
         ],
     },
 )
