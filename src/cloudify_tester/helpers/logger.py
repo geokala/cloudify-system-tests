@@ -2,7 +2,7 @@ import logging
 import os
 
 
-class TesterLogger(object):
+class TestLogger(object):
     level_mapping = {
         'debug': logging.DEBUG,
         'info': logging.INFO,
@@ -12,10 +12,11 @@ class TesterLogger(object):
 
     def __init__(self,
                  log_path,
+                 logger_name='cloudify_tester',
                  log_format='%(asctime)s|%(levelname)s|%(message)s',
                  filehandler_level=logging.DEBUG,
                  console_level=logging.ERROR):
-        self._logger = logging.getLogger('cloudify_tester')
+        self._logger = logging.getLogger(logger_name)
         self._logger.propagate = False
         # The logger will process all messages, we'll set the level to
         # actually log in the handlers.
@@ -25,12 +26,15 @@ class TesterLogger(object):
         formatter = logging.Formatter(log_format)
 
         # Create file handler
-        self._filehandler = logging.FileHandler(
-            os.path.join(log_path, 'test_run.log'),
-        )
+        if log_path is not None:
+            self._filehandler = logging.FileHandler(
+                os.path.join(log_path, 'test_run.log'),
+            )
+            self._filehandler.setFormatter(formatter)
+            self.file_logging_enable()
+        else:
+            self._filehandler = logging.NullHandler()
         self._filehandler_level = filehandler_level
-        self._filehandler.setFormatter(formatter)
-        self.file_logging_enable()
         self._logger.addHandler(self._filehandler)
 
         # Create console handler

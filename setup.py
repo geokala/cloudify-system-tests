@@ -11,5 +11,12 @@ setup(
     install_requires=[
         'behave==1.2.5',
         'PyYAML==3.11',
+        'click==6.6',
     ],
+    entry_points={
+        'console_scripts': [
+            'show_config_schema = '
+            'cloudify_tester.config_display:show_config_schema',
+        ],
+    },
 )

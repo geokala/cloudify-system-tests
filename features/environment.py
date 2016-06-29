@@ -1,14 +1,19 @@
-# TODO: Actually make a logger
-import logging
-
 from behave.log_capture import capture
+
 from cloudify_tester import config as cloudify_tester_config
 from cloudify_tester.helpers.env import TestEnvironment
+from cloudify_tester.helpers.logger import TestLogger
 
 
 # Use the capture decorator to ensure we output warnings logged loading config
 @capture
 def before_all(context):
+    conf_logger = TestLogger(
+        log_path=None,
+        logger_name='config_logger',
+    )
+    conf_logger.console_logging_set_level('debug')
+
     conf_file_path = context.config.userdata.get('config', 'test_config.yaml')
     schema_paths = context.config.userdata.get('schemas', None)
 
@@ -19,7 +24,7 @@ def before_all(context):
     tester_conf = cloudify_tester_config.Config(
         config_files=[conf_file_path],
         config_schema_files=schemas,
-        logger=logging,
+        logger=conf_logger,
     )
 
     context.tester_conf = tester_conf
