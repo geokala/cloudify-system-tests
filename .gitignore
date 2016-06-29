@@ -1,1 +1,3 @@
 test_config.yaml
+templates/*
+features/*

@@ -18,6 +18,7 @@ def show_config_schema(generate_sample_config):
         log_path=None,
         logger_name='config',
     )
+    logger.console_logging_set_level('debug')
 
     config = Config(
         config_files=[],
