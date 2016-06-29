@@ -139,4 +139,4 @@ class _CfyExecutionsHelper(CfyHelperBase):
             '--workflow', workflow,
             '--timeout', timeout,
         ]
-        self._exec(command, fake_run=fake_run)
+        return self._exec(command, fake_run=fake_run)

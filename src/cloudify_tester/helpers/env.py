@@ -1,9 +1,8 @@
 from cloudify_tester.helpers.git import GitHelper
 from cloudify_tester.helpers.cfy import CfyHelper
 from cloudify_tester.helpers.pip import PipHelper
-from cloudify_tester.helpers.logger import TesterLogger
+from cloudify_tester.helpers.logger import TestLogger
 
-from copy import copy
 import os
 import subprocess
 import tempfile
@@ -23,6 +22,7 @@ class TestEnvironment(object):
     blueprints = []
     deployments = []
     deployments_outputs = {}
+    _env_cache = {}
 
     def start(self,
               cloudify_version=None,
@@ -31,7 +31,7 @@ class TestEnvironment(object):
         self.workdir = tempfile.mkdtemp()
 
         # Set up logger
-        self.logger = TesterLogger(self.workdir)
+        self.logger = TestLogger(self.workdir)
         self.logger.file_logging_set_level(logging_level)
         if log_to_console:
             self.logger.console_logging_set_level(logging_level)
@@ -104,7 +104,7 @@ class TestEnvironment(object):
 
         # TODO: Split this impenetrable block up a bit
         # Env modifications
-        os_env = copy(os.environ)
+        os_env = os.environ.copy()
         # Update path
         path = os_env.get('PATH')
         path = path.split(':')
@@ -112,27 +112,31 @@ class TestEnvironment(object):
         new_path.extend(path)
         new_path = ':'.join(new_path)
         os_env['PATH'] = new_path
-        # TODO: Fix horrible naming (and I think this can be one linered)
-        for k, v in env_var_overrides.items():
-            os_env[k] = v
-        # TODO: Dump current env vars to a file that can be dot sourced
+        os_env.update(env_var_overrides)
 
-        run_message = 'Running {command} in {directory} with {env}'
+        cache_file = None
+        for dotfile, cached_env in self._env_cache.items():
+            if cached_env == os_env:
+                cache_file = dotfile
+        if cache_file is None:
+            cache_file = self._generate_dotfile(command, os_env)
+
         if fake:
-            run_message = 'Asked for: ' + run_message
-            return run_message.format(
+            fake_message = 'cd {path} && . "{env}" && {command}'
+            return fake_message.format(
                 command=' '.join(command),
-                directory=cwd,
-                env=os_env,
+                path=cwd,
+                env=cache_file,
             )
 
+        run_message = 'Running {command} in {path} with env vars from {env}'
         for i in range(0, retries):
             try:
                 self.logger.info(
                     run_message.format(
                         command=' '.join(command),
-                        directory=cwd,
-                        env=os_env,
+                        path=cwd,
+                        env=cache_file,
                     )
                 )
                 process = subprocess.Popen(
@@ -162,3 +166,27 @@ class TestEnvironment(object):
             self.logger.info(line.rstrip('\n'))
         for line in process.stderr.readlines():
             self.logger.error(line.rstrip('\n'))
+
+    def _generate_dotfile(self, command, env):
+        candidate_filename = 'env_' + ''.join(command[:3])
+        candidate_filename = candidate_filename.replace('/', '_')
+        candidate_filename = candidate_filename.replace('"', '_')
+
+        base_filename = candidate_filename
+        suffix = 1
+        candidate_filename = base_filename + '_{}'.format(suffix)
+
+        while candidate_filename in self._env_cache.keys():
+            suffix += 1
+            candidate_filename = base_filename + '_{}'.format(suffix)
+
+        env_file_path = os.path.join(self.workdir, candidate_filename)
+        with open(env_file_path, 'w') as env_file_handle:
+            for env_var, value in env.items():
+                env_file_handle.write('{var}="{value}"\n'.format(
+                    var=env_var,
+                    value=value,
+                ))
+        self._env_cache[candidate_filename] = env
+
+        return candidate_filename

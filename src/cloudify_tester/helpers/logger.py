@@ -31,11 +31,11 @@ class TestLogger(object):
                 os.path.join(log_path, 'test_run.log'),
             )
             self._filehandler.setFormatter(formatter)
-            self.file_logging_enable()
         else:
             self._filehandler = logging.NullHandler()
         self._filehandler_level = filehandler_level
         self._logger.addHandler(self._filehandler)
+        self.file_logging_enable()
 
         # Create console handler
         self._consolehandler = logging.StreamHandler()
