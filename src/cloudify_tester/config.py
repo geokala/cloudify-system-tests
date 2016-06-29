@@ -1,7 +1,8 @@
-import pkgutil
-
 import yaml
 
+import atexit
+import os
+import pkg_resources
 
 class SchemaError(Exception):
     pass
@@ -37,12 +38,8 @@ class Config(object):
         self.check_config_is_valid()
 
     def update_schema(self, schema_file):
-        if isinstance(schema_file, dict):
-            # This is already a dict, just use it
-            schema = schema_file
-        else:        
-            with open(schema_file) as schema_handle:
-                schema = yaml.load(schema_handle.read())
+        with open(schema_file) as schema_handle:
+            schema = yaml.load(schema_handle.read())
 
         # Make sure the schema is entirely valid- every entry must have a
         # description
@@ -116,7 +113,10 @@ class Config(object):
         return self._generate_config().items()
 
 default_schemas = [
-    yaml.load(
-        pkgutil.get_data('cloudify_tester', 'schemas/base_schema.yaml')
+    pkg_resources.resource_filename(
+        'cloudify_tester',
+        os.path.join('schemas', schema),
     )
+    for schema in pkg_resources.resource_listdir('cloudify_tester', 'schemas')
 ]
+atexit.register(pkg_resources.cleanup_resources)
