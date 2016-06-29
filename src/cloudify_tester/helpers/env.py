@@ -2,7 +2,7 @@ from cloudify_tester.helpers.git import GitHelper
 from cloudify_tester.helpers.cfy import CfyHelper
 from cloudify_tester.helpers.pip import PipHelper
 from cloudify_tester.helpers.logger import TestLogger
-from cloudify_tester.helpers.executoer import Executor
+from cloudify_tester.helpers.executor import Executor
 
 import os
 import tempfile
@@ -37,7 +37,8 @@ class TestEnvironment(object):
         else:
             self.logger.console_logging_disable()
 
-        self.executor = Executor(workdir=self.workdir, logger=self.logger)
+        self._executor = Executor(workdir=self.workdir, logger=self.logger)
+        self.executor = self._executor.executor
         self.cfy = CfyHelper(workdir=self.workdir, executor=self.executor)
         self.git = GitHelper(workdir=self.workdir, executor=self.executor)
         self.pip = PipHelper(workdir=self.workdir, executor=self.executor)
