@@ -22,29 +22,3 @@ remove_workdir_on_failure:
 resources_prefix:
   description: The prefix to put on resources specified in blueprints.
   default: system-tests
-# The openstack settings should really be in a schema in the openstack plugin
-openstack_username:
-  description: The username to use when connecting to openstack.
-openstack_password:
-  description: The password to use when connecting to openstack.
-openstack_tenant:
-  description: The tenant name to use when connecting to openstack.
-openstack_region:
-  description: The region to use when connecting to openstack.
-openstack_keystone_url:
-  description: The URL to use to connect to the openstack keystone server, including port. 
-openstack_large_flavor_id:
-  description: The ID of the flavour in openstack which is considered large. This should provide more than 1 CPU and more than 4GB RAM.
-openstack_centos_7_image_id:
-  description: The ID of a Centos 7 image on openstack.
-openstack_ubuntu_14_04_image_id:
-  description: The ID of an Ubuntu 14.04 image on openstack.
-openstack_external_network:
-  description: The name of the external network on openstack, for floating IPs.
-  default: external
-openstack_centos_agents_user:
-  description: The username to use when connecting to agents on centos VMs via SSH.
-  default: centos
-openstack_ubuntu_agents_user:
-  description: The username to use when connecting to agents on ubuntu VMs via SSH.
-  default: ubuntu
