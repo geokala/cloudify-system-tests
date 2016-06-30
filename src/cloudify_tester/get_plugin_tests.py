@@ -11,63 +11,72 @@ import os
 @click.argument('git_repo')
 @click.option('--checkout', default='master',
               help='What to git checkout from the repo.')
-def get_plugin_tests(git_repo, checkout):
+@click.option(
+    '--name',
+    default=None,
+    help=(
+        'Where to clone the plugin to. Otherwise this will be inferred from '
+        'the git repository name.'
+    ),
+)
+def get_plugin_tests(git_repo, checkout, name):
     """
         Install the extra system tests from a given git repo.
         This repo must be able to be cloned by git clone <repo>.
         This repo is expected to contain:
-          - system_tests/setup.py- pip install will be run in the system tests
-            folder
           - a system_tests/features folder containing any features for this
-            plugin. These will be copied to the system tests features path
+            plugin
+          - a system_tests/features/steps folder containing code for any extra
+            steps this plugin provides/uses
+            This steps folder should also contain the steps.py file provided
+            in the base system tests, as this imports the default steps
+        This repo may also contain:
+          - a system_tests/templates folder containing any templates, e.g. for
+            inputs
+          - a system_tests/schemas folder containing one or more schemas for
+            any extra configuration entries this plugin will use
+          - a system_tests/setup.py file, which will cause pip install to be
+            run on this path
     """
     logger = TestLogger(
         log_path=None,
         logger_name='plugin-test-retriever',
+        log_format='%(message)s'
     )
     logger.console_logging_set_level('debug')
 
     executor = Executor(
         workdir=os.getcwd(),
         logger=logger,
-    ).executor
+        generate_env_files=False,
+    )
     git = GitHelper(
         workdir=os.getcwd(),
         executor=executor,
     )
+
+    # Guess name if it's not supplied
+    if name is None:
+        name = git_repo.split('/')[-1]
+        if name.endswith('.git'):
+            name = name[:-4]
+
     git.clone(
         repository=git_repo,
-        clone_to='.get_plugin',
+        clone_to=name,
     )
     git.checkout(
-        repo_path='.get_plugin',
+        repo_path=name,
         checkout=checkout,
     )
 
     plugin_tests_path = os.path.join(
-        os.getcwd(), '.get_plugin', 'system_tests',
+        os.getcwd(), name, 'system_tests',
     )
 
-    pip = PipHelper(
-        workdir=os.getcwd(),
-        executor=executor,
-    )
-    pip.install(plugin_tests_path)
-
-    # Get features
-    new_features_path = os.path.join(plugin_tests_path, 'features')
-    features_path = os.path.join(os.getcwd(), 'features')
-    for new_feature in os.listdir(new_features_path):
-        if new_feature.endswith('.feature'):
-            new_feature = os.path.join(new_features_path, new_feature)
-            executor(['cp', new_feature, features_path])
-
-    # Get templates
-    new_templates_path = os.path.join(plugin_tests_path, 'templates')
-    templates_path = os.path.join(os.getcwd(), 'templates')
-    for new_template in os.listdir(new_templates_path):
-        new_template = os.path.join(new_templates_path, new_template)
-        executor(['cp', new_template, templates_path])
-
-    # Clean up downloaded plugin
-    executor(['rm', '-rf', '.get_plugin'])
+    if os.path.isfile(os.path.join(plugin_tests_path, 'setup.py')):
+        pip = PipHelper(
+            workdir=os.getcwd(),
+            executor=executor,
+        )
+        pip.install(plugin_tests_path)

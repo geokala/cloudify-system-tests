@@ -10,9 +10,10 @@ class RetriesExceededError(Exception):
 class Executor(object):
     _env_cache = {}
 
-    def __init__(self, workdir, logger):
+    def __init__(self, workdir, logger, generate_env_files=True):
         self.workdir = workdir
         self.logger = logger
+        self.generate_env_files = generate_env_files
 
     def __call__(self, command, path_prepends=None, env_var_overrides=None,
                  retries=3, retry_delay=3, cwd=None, fake=False,
@@ -40,18 +41,22 @@ class Executor(object):
 
         # See if we have already cached this env for user troubleshooting
         cache_file = None
-        for dotfile, cached_env in self._env_cache.items():
-            if cached_env == os_env:
-                # We have, get the file name for logging
-                cache_file = dotfile
-        if cache_file is None:
-            # We haven't. Cache it for user troubleshooting.
-            cache_file = self._generate_dotfile(command, os_env)
+        if self.generate_env_files:
+            for dotfile, cached_env in self._env_cache.items():
+                if cached_env == os_env:
+                    # We have, get the file name for logging
+                    cache_file = dotfile
+            if cache_file is None:
+                # We haven't. Cache it for user troubleshooting.
+                cache_file = self._generate_dotfile(command, os_env)
 
         if fake:
             # We were asked to fake_run it, return an equivalent to what we
             # would have done so that it can be recreated
-            fake_message = 'cd {path} && . "{env}" && {command}'
+            if cache_file is None:
+                fake_message = 'cd {path} && {command}'
+            else:
+                fake_message = 'cd {path} && . "{env}" && {command}'
             return fake_message.format(
                 command=' '.join(command),
                 path=cwd,
@@ -59,7 +64,12 @@ class Executor(object):
             )
 
         succeeded = False
-        run_message = 'Running {command} in {path} with env vars from {env}'
+        if cache_file is None:
+            run_message = 'Running {command} in {path}'
+        else:
+            run_message = (
+                'Running {command} in {path} with env vars from {env}'
+            )
         for attempt in range(0, retries):
             try:
                 process_stdout = []
