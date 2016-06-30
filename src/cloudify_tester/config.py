@@ -40,16 +40,36 @@ class Config(object):
         with open(schema_file) as schema_handle:
             schema = yaml.load(schema_handle.read())
 
+        namespace = None
+        if 'namespace' in schema.keys():
+            namespace = schema['namespace']
+            if namespace in self.schema.keys():
+                if self.schema[namespace]['.is_namespace']:
+                    namespace_dict = self.schema[namespace]
+                else:
+                    raise SchemaError(
+                        'Attempted to define namespace {namespace} but this '
+                        'is already a configuration entry!'.format(
+                            namespace=namespace,
+                        )
+                    )
+            else:
+                self.schema[namespace] = {'.is_namespace': True}
+            schema.pop('namespace')
+
         # Make sure the schema is entirely valid- every entry must have a
         # description
         healthy_schema = True
         for key, value in schema.items():
+            display_key = key
+            if namespace is not None:
+                display_key = '.'.join([namespace, key])
             if '.' in key:
                 self.logger.error(
                     '{key} is not a valid name for a configuration entry. '
                     'Keys must not contain dots as this will interfere with '
                     'processing in input substituation.'.format(
-                        key=key,
+                        key=display_key,
                     )
                 )
                 healthy_schema = False
@@ -57,7 +77,7 @@ class Config(object):
                 self.logger.error(
                     '{key} in schema does not have description. '
                     'Please add a description for this schema entry.'.format(
-                        key=key,
+                        key=display_key,
                     )
                 )
                 healthy_schema = False
@@ -67,7 +87,10 @@ class Config(object):
                 'errors.'.format(filename=schema_file)
             )
 
-        self.schema.update(schema)
+        if namespace is None:
+            self.schema.update(schema)
+        else:
+            self.schema[namespace].update(schema)
         self.check_config_is_valid()
 
     def check_config_is_valid(self):

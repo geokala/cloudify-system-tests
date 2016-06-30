@@ -1,24 +1,6 @@
 cli_version:
   description: Version of cloudify CLI to use in workdir. Default is most recent as understood by pip.
   default: null
-logging_level:
-  description: What level to log at (debug, info, warn, or error).
-  default: debug
-log_to_console:
-  description: Whether to log to console as well as to a test_run.log in the test's workdir.
-  default: false
-cleanup_on_success:
-  description: Whether to run test environment cleanups if the tests succeed.
-  default: true
-cleanup_on_failure:
-  description: Whether to run test environment cleanups if any tests fail.
-  default: false
-remove_workdir_on_success:
-  description: Whether to keep the workdir (which contains log files and inputs) after any cleanups are run on a successful test run.
-  default: true
-remove_workdir_on_failure:
-  description: Whether to keep the workdir (which contains log files and inputs) after any cleanups are run on a test run with failures.
-  default: false
 resources_prefix:
   description: The prefix to put on resources specified in blueprints.
   default: system-tests

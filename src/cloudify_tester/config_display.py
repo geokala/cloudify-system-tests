@@ -33,11 +33,28 @@ def show_config_schema(generate_sample_config):
         print(e.message)
         sys.exit(1)
 
-    sorted_config_entries = config.schema.keys()
+    show_entries(config.schema, generate_sample_config)
+
+
+def show_entries(schema, generate_sample_config=False, indent=''):
+    sorted_config_entries = schema.keys()
+    sorted_config_entries = [
+        entry for entry in sorted_config_entries
+        if isinstance(schema[entry], dict)
+    ]
     sorted_config_entries.sort()
 
-    for config_entry in sorted_config_entries:
-        details = config.schema[config_entry]
+    namespaces = [
+        entry for entry in sorted_config_entries
+        if schema[entry].get('.is_namespace', False)
+    ]
+    root_config_entries = [
+        entry for entry in sorted_config_entries
+        if entry not in namespaces
+    ]
+
+    for config_entry in root_config_entries:
+        details = schema[config_entry]
         if generate_sample_config:
             if 'default' in details.keys():
                 print('{entry}: {default}'.format(
@@ -48,11 +65,19 @@ def show_config_schema(generate_sample_config):
                 print('{entry}: '.format(entry=config_entry))
         else:
             line = '{entry}: {description}'
-            if 'default' in config.schema[config_entry].keys():
+            if 'default' in schema[config_entry].keys():
                 line = line + ' (Default: {default})'
             line = line.format(
                 entry=config_entry,
                 description=details['description'],
                 default=json.dumps(details.get('default')),
             )
-            print(line)
+            print(indent + line)
+
+    for namespace in namespaces:
+        print(indent + namespace + ':')
+        show_entries(
+            schema[namespace],
+            generate_sample_config,
+            indent + '  ',
+        )
