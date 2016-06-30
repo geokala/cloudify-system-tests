@@ -30,10 +30,32 @@ class Config(object):
         for config in config_files:
             self.update_config(config)
 
+    def _nest_dotted_key(self, root_dict, key_path, value):
+        this_key = key_path.pop(0)
+
+        if len(key_path) == 0:
+            root_dict[this_key] = value
+        else:
+            if this_key not in root_dict.keys():
+                root_dict[this_key] = {}
+            self._nest_dotted_key(
+                root_dict[this_key],
+                key_path=key_path,
+                value=value,
+            )
+
     def update_config(self, config_file):
         with open(config_file) as config_handle:
             raw_config = yaml.load(config_handle.read())
-        self.raw_config.update(raw_config)
+        processed_config = {}
+        for key in raw_config.keys():
+            key_path = key.split('.')
+            self._nest_dotted_key(
+                processed_config,
+                key_path,
+                raw_config.pop(key),
+            )
+        self.raw_config.update(processed_config)
         self.check_config_is_valid()
 
     def update_schema(self, schema_file):
@@ -44,9 +66,7 @@ class Config(object):
         if 'namespace' in schema.keys():
             namespace = schema['namespace']
             if namespace in self.schema.keys():
-                if self.schema[namespace]['.is_namespace']:
-                    namespace_dict = self.schema[namespace]
-                else:
+                if not self.schema[namespace]['.is_namespace']:
                     raise SchemaError(
                         'Attempted to define namespace {namespace} but this '
                         'is already a configuration entry!'.format(
@@ -93,17 +113,30 @@ class Config(object):
             self.schema[namespace].update(schema)
         self.check_config_is_valid()
 
-    def check_config_is_valid(self):
+    def check_config_is_valid(self, namespace=None):
         # Allow the existence of, but warn about, config keys that aren't in
         # the schema.
         # They will not be usable.
-        for key in self.raw_config.keys():
-            if key not in self.schema.keys():
+        if namespace is None:
+            schema = self.schema
+            config = self.raw_config
+        else:
+            schema = self.schema[namespace]
+            config = self.raw_config.get(namespace, {})
+        for key in config.keys():
+            if namespace is None:
+                display_key = key
+            else:
+                display_key = '.'.join([namespace, key])
+            if key not in schema.keys():
                 self.logger.warn(
                     '{key} is in config, but not defined in the schema. '
                     'This key will not be usable until correctly defined in '
-                    'the schema.'.format(key=key)
+                    'the schema.'.format(key=display_key)
                 )
+            if key in schema.keys() and schema[key].get('.is_namespace',
+                                                        False):
+                self.check_config_is_valid(namespace=key)
         # Currently, if we can load it then it's valid.
         return True
 

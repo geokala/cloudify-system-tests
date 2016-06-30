@@ -12,7 +12,9 @@ import sys
 @click.command()
 @click.option('--generate-sample-config', is_flag=True, default=False,
               help='Generate a sample config instead of showing options.')
-def show_config_schema(generate_sample_config):
+@click.option('--validate', is_flag=True, default=False,
+              help='Validate the test config (should be test_config.yaml.')
+def show_config_schema(generate_sample_config, validate):
     """
         Show all acceptable config entries according to the schema.
     """
@@ -24,16 +26,24 @@ def show_config_schema(generate_sample_config):
     logger.console_logging_set_level('debug')
 
     try:
+        if validate:
+            config_files = ['test_config.yaml']
+        else:
+            config_files = []
         config = Config(
-            config_files=[],
+            config_files=config_files,
             config_schema_files=default_schemas,
             logger=logger,
         )
     except SchemaError as e:
         print(e.message)
         sys.exit(1)
+    except IOError:
+        sys.stderr.write('Could not find test_config.yaml\n')
+        sys.exit(2)
 
-    show_entries(config.schema, generate_sample_config)
+    if not validate:
+        show_entries(config.schema, generate_sample_config)
 
 
 def show_entries(schema, generate_sample_config=False, indent=''):
