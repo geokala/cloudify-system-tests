@@ -37,8 +37,7 @@ class TestEnvironment(object):
         else:
             self.logger.console_logging_disable()
 
-        self._executor = Executor(workdir=self.workdir, logger=self.logger)
-        self.executor = self._executor.executor
+        self.executor = Executor(workdir=self.workdir, logger=self.logger)
         self.cfy = CfyHelper(workdir=self.workdir, executor=self.executor)
         self.git = GitHelper(workdir=self.workdir, executor=self.executor)
         self.pip = PipHelper(workdir=self.workdir, executor=self.executor)
