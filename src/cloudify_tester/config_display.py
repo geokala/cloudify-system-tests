@@ -57,12 +57,12 @@ def show_entries(schema, generate_sample_config=False, indent=''):
         details = schema[config_entry]
         if generate_sample_config:
             if 'default' in details.keys():
-                print('{entry}: {default}'.format(
+                print(indent + '{entry}: {default}'.format(
                     entry=config_entry,
                     default=json.dumps(details['default'])
                 ))
             else:
-                print('{entry}: '.format(entry=config_entry))
+                print(indent + '{entry}: '.format(entry=config_entry))
         else:
             line = '{entry}: {description}'
             if 'default' in schema[config_entry].keys():
