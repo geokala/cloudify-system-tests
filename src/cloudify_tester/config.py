@@ -44,6 +44,15 @@ class Config(object):
         # description
         healthy_schema = True
         for key, value in schema.items():
+            if '.' in key:
+                self.logger.error(
+                    '{key} is not a valid name for a configuration entry. '
+                    'Keys must not contain dots as this will interfere with '
+                    'processing in input substituation.'.format(
+                        key=key,
+                    )
+                )
+                healthy_schema = False
             if 'description' not in value.keys():
                 self.logger.error(
                     '{key} in schema does not have description. '

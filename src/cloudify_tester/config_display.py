@@ -1,4 +1,4 @@
-from cloudify_tester.config import Config, default_schemas
+from cloudify_tester.config import Config, default_schemas, SchemaError
 from cloudify_tester.helpers.logger import TestLogger
 
 import click
@@ -6,6 +6,7 @@ import click
 # Note: While config files are in yaml, using yaml.dump adds a newline with an
 # ellipsis. JSON will be compatible, but doesn't add fluff.
 import json
+import sys
 
 
 @click.command()
@@ -18,14 +19,19 @@ def show_config_schema(generate_sample_config):
     logger = TestLogger(
         log_path=None,
         logger_name='config',
+        log_format='%(message)s'
     )
     logger.console_logging_set_level('debug')
 
-    config = Config(
-        config_files=[],
-        config_schema_files=default_schemas,
-        logger=logger,
-    )
+    try:
+        config = Config(
+            config_files=[],
+            config_schema_files=default_schemas,
+            logger=logger,
+        )
+    except SchemaError as e:
+        print(e.message)
+        sys.exit(1)
 
     sorted_config_entries = config.schema.keys()
     sorted_config_entries.sort()
