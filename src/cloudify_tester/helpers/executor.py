@@ -3,6 +3,10 @@ import subprocess
 import time
 
 
+class RetriesExceededError(Exception):
+    pass
+
+
 class Executor(object):
     _env_cache = {}
 
@@ -10,7 +14,7 @@ class Executor(object):
         self.workdir = workdir
         self.logger = logger
 
-    def executor(self, command, path_prepends=None, env_var_overrides=None,
+    def __call__(self, command, path_prepends=None, env_var_overrides=None,
                  retries=3, retry_delay=3, cwd=None, fake=False,
                  expected_return_codes=(0,)):
         if env_var_overrides is None:
@@ -55,7 +59,7 @@ class Executor(object):
             )
 
         run_message = 'Running {command} in {path} with env vars from {env}'
-        for i in range(0, retries):
+        for attempt in range(0, retries):
             try:
                 self.logger.info(
                     run_message.format(
@@ -78,20 +82,32 @@ class Executor(object):
                 if process.returncode in expected_return_codes:
                     # It worked!
                     break
+                elif attempt == retries:
+                    raise RetriesExceededError(
+                        'Retries exceeded for command {command} with final '
+                        'return code {code}.'.format(
+                            command=' '.join(command),
+                            code=process.returncode,
+                        )
+                    )
                 else:
                     # Not too good on that attempt, try again
                     self.logger.warn(
-                        'Command {command} failed, retrying.'.format(
+                        'Command {command} failed with return code {code}, '
+                        'retrying.'.format(
                             command=' '.join(command),
+                            code=process.returncode,
                         )
                     )
                     time.sleep(retry_delay)
             except:
-                self.logger.exception('Command {command} failed:'.format(
-                    command=' '.join(command),
-                ))
+                self.logger.exception(
+                    'Command {command} failed:'.format(
+                        command=' '.join(command),
+                    )
+                )
                 raise
-        return process.returncode
+        return process
 
     def _log_process_output(self, process):
         for line in process.stdout.readlines():
