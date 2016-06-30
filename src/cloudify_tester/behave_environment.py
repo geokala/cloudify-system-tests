@@ -36,8 +36,8 @@ def before_feature(context, feature):
     cli_version = context.tester_conf['cli_version']
     context._env.start(
         cloudify_version=cli_version,
-        logging_level=context.tester_conf['logging_level'],
-        log_to_console=context.tester_conf['log_to_console'],
+        logging_level=context.tester_conf['logging']['level'],
+        log_to_console=context.tester_conf['logging']['to_console'],
     )
 
 
@@ -46,9 +46,13 @@ def after_feature(context, feature):
     print('Executing cleanup functions')
     print('Output will be absent if log_to_console is false')
     if context.failed:
-        cleanup = context.tester_conf['cleanup_on_failure']
-        remove_workdir = context.tester_conf['remove_workdir_on_failure']
+        cleanup = context.tester_conf['cleanup']['on_failure']
+        remove_workdir = (
+            context.tester_conf['cleanup']['remove_workdir_on_failure']
+        )
     else:
-        cleanup = context.tester_conf['cleanup_on_success']
-        remove_workdir = context.tester_conf['remove_workdir_on_success']
+        cleanup = context.tester_conf['cleanup']['on_success']
+        remove_workdir = (
+            context.tester_conf['cleanup']['remove_workdir_on_success']
+        )
     context._env.teardown(run_cleanup=cleanup, remove_workdir=remove_workdir)

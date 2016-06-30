@@ -140,7 +140,7 @@ class Config(object):
         # Currently, if we can load it then it's valid.
         return True
 
-    def _generate_config(self):
+    def _generate_config(self, include_dotted=False):
         config = {
             k: v.get('default', NotSet)
             for k, v in self.schema.items()
@@ -148,16 +148,19 @@ class Config(object):
         for key, value in self.raw_config.items():
             if key in config.keys():
                 config[key] = value
+        if include_dotted:
+            namespaces = [
+                key for key in self.schema.keys()
+                if self.schema[key].get('.is_namespace', False)
+            ]
+            for namespace in namespaces:
+                namespace_dict = self.raw_config.get(namespace, {})
+                for key, value in namespace_dict.items():
+                    config['.'.join([namespace, key])] = value
         return config
 
     def __getitem__(self, item):
-        if '.' in item:
-            raise KeyError(
-                'Config entry {key} is invalid. Config entries may not be '
-                'retrieved using dotted notation. Please use nested dicts '
-                'instead.'.format(key=item)
-            )
-        config = self._generate_config()
+        config = self._generate_config(include_dotted=True)
         if item in config.keys():
             return config[item]
         else:
