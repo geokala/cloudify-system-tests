@@ -80,3 +80,21 @@ def get_plugin_tests(git_repo, checkout, name):
             executor=executor,
         )
         pip.install(plugin_tests_path)
+
+    # Generate behave configuration to automatically find feature files
+    if not os.path.exists('.behaverc'):
+        with open('.behaverc', 'w') as conf_handle:
+            conf_handle.write('[behave]\n')
+            conf_handle.write('paths=features\n')
+            conf_handle.write(
+                'paths={plugin}/system_tests/features\n'.format(
+                    plugin=name,
+                )
+            )
+    else:
+        with open('.behaverc', 'a') as conf_handle:
+            conf_handle.write(
+                'paths={plugin}/system_tests/features\n'.format(
+                    plugin=name,
+                )
+            )
