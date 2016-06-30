@@ -81,7 +81,7 @@ class TestEnvironment(object):
         # This will break on a Mac (and Windows), so should have a better
         # check, but it probably wants something just to avoid major pain on
         # a single typo in a later commit
-        if not self.workdir.startswith('/tmp/'):
+        if not self.workdir.startswith(tempfile.gettempdir()):
             raise DangerousBugError(
                 'An attempt was made to delete something not in a temp '
                 'directory. Target was: {path}'.format(
