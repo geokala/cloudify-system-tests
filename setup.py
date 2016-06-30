@@ -9,6 +9,7 @@ setup(
         'behave==1.2.5',
         'PyYAML==3.11',
         'click==6.6',
+        'Jinja2==2.7.2',
     ],
     entry_points={
         'console_scripts': [

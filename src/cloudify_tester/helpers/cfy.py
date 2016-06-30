@@ -42,7 +42,7 @@ class CfyHelper(CfyHelperBase):
         )
 
     def create_inputs(self, inputs_dict, inputs_name='inputs.yaml'):
-        inputs_yaml = yaml.dump(inputs_dict)
+        inputs_yaml = yaml.dump(inputs_dict, default_flow_style=False)
         with open(os.path.join(self.workdir, inputs_name),
                   'w') as inputs_handle:
             inputs_handle.write(inputs_yaml)

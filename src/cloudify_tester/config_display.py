@@ -1,7 +1,13 @@
-from cloudify_tester.config import Config, default_schemas, SchemaError
+from cloudify_tester.config import (
+    Config,
+    default_schemas,
+    SchemaError,
+    NotSet,
+)
 from cloudify_tester.helpers.logger import TestLogger
 
 import click
+from jinja2 import Template
 
 # Note: While config files are in yaml, using yaml.dump adds a newline with an
 # ellipsis. JSON will be compatible, but doesn't add fluff.
@@ -14,7 +20,9 @@ import sys
               help='Generate a sample config instead of showing options.')
 @click.option('--validate', is_flag=True, default=False,
               help='Validate the test config (should be test_config.yaml.')
-def show_config_schema(generate_sample_config, validate):
+@click.option('--parse-template', default=None,
+              help='Output parsed template based on the test config.')
+def show_config_schema(generate_sample_config, validate, parse_template):
     """
         Show all acceptable config entries according to the schema.
     """
@@ -26,7 +34,7 @@ def show_config_schema(generate_sample_config, validate):
     logger.console_logging_set_level('debug')
 
     try:
-        if validate:
+        if validate or parse_template:
             config_files = ['test_config.yaml']
         else:
             config_files = []
@@ -42,7 +50,28 @@ def show_config_schema(generate_sample_config, validate):
         sys.stderr.write('Could not find test_config.yaml\n')
         sys.exit(2)
 
-    if not validate:
+    if parse_template is not None:
+        with open(parse_template) as template_handle:
+            template = Template(template_handle.read())
+        print(template.render(config))
+    elif validate:
+        namespaces = config.namespaces
+        not_set_message = '{key} is not set and has no default!\n'
+        for namespace in namespaces:
+            if namespace is None:
+                check = config.items()
+            else:
+                check = config[namespace].items()
+            for key, value in check:
+                display_key = key
+                if namespace is not None:
+                    display_key = '.'.join([namespace, key])
+                if key not in namespaces:
+                    if value is NotSet:
+                        sys.stderr.write(not_set_message.format(
+                            key=display_key,
+                        ))
+    else:
         show_entries(config.schema, generate_sample_config)
 
 

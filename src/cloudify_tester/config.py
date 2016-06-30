@@ -15,6 +15,7 @@ class NotSet(object):
 class Config(object):
     schema = {}
     raw_config = {}
+    namespaces = set([None])
 
     def __init__(self, config_files, config_schema_files, logger):
         self.logger = logger
@@ -65,6 +66,7 @@ class Config(object):
         namespace = None
         if 'namespace' in schema.keys():
             namespace = schema['namespace']
+            self.namespaces.add(namespace)
             if namespace in self.schema.keys():
                 if not self.schema[namespace]['.is_namespace']:
                     raise SchemaError(
@@ -141,18 +143,32 @@ class Config(object):
         return True
 
     def _generate_config(self, include_dotted=False):
+        # TODO: This is getting hairy... needs at least clearer logic, if
+        # better is not an option
+        namespaces = [
+            key for key in self.schema.keys()
+            if self.schema[key].get('.is_namespace', False)
+        ]
         config = {
             k: v.get('default', NotSet)
             for k, v in self.schema.items()
         }
+        for namespace in namespaces:
+            config[namespace] = {
+                k: v.get('default', NotSet)
+                for k, v in self.schema[namespace].items()
+                if k != '.is_namespace'
+            }
         for key, value in self.raw_config.items():
-            if key in config.keys():
-                config[key] = value
+            if key in namespaces:
+                # TODO: This is begging to be a recursive function
+                for ns_key, ns_value in self.raw_config[key].items():
+                    if ns_key in config[key].keys():
+                        config[key][ns_key] = ns_value
+            else:
+                if key in config.keys():
+                    config[key] = value
         if include_dotted:
-            namespaces = [
-                key for key in self.schema.keys()
-                if self.schema[key].get('.is_namespace', False)
-            ]
             for namespace in namespaces:
                 namespace_dict = self.raw_config.get(namespace, {})
                 for key, value in namespace_dict.items():
@@ -175,6 +191,9 @@ class Config(object):
                     'Config entry {key} was not supplied and is not in '
                     'schema.'.format(key=item)
                 )
+
+    def get_with_dotted(self):
+        return self._generate_config(include_dotted=True)
 
     def keys(self):
         return self._generate_config().keys()

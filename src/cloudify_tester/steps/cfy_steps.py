@@ -1,6 +1,7 @@
 from cloudify_tester.steps.git_steps import git_clone_and_checkout
 
 from behave import step, given
+from jinja2 import Template
 import yaml
 
 import os
@@ -25,7 +26,9 @@ def cfy_create_inputs(context, inputs_file, template_name):
 
     template_path = templates[template_name]
     with open(template_path) as template_handle:
-        inputs = template_handle.read().format(**context.tester_conf)
+        template = Template(template_handle.read())
+
+    inputs = template.render(context.tester_conf)
 
     inputs = yaml.load(inputs)
 
