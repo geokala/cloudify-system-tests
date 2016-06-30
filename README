@@ -19,6 +19,8 @@ Cloudify tester framework user guide:
   `behave -d` (or `behave --dry-run`)
 
 6. If you only wish to run features matching a tag, without seeing what was skipped, run:
+  `behave --tags=<tag> --no-skipped`
+  e.g.
   `behave --tags=openstack --no-skipped`
 
 For more details, call behave, show_config_schema, or get_plugin_tests with '--h
