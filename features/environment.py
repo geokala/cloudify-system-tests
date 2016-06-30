@@ -29,6 +29,7 @@ def before_all(context):
 
     context.tester_conf = tester_conf
 
+
 @capture
 def before_feature(context, feature):
     context._env = TestEnvironment()
@@ -39,8 +40,11 @@ def before_feature(context, feature):
         log_to_console=context.tester_conf['log_to_console'],
     )
 
+
 @capture
 def after_feature(context, feature):
+    print('Executing cleanup functions')
+    print('Output will be absent if log_to_console is false')
     if context.failed:
         cleanup = context.tester_conf['cleanup_on_failure']
         remove_workdir = context.tester_conf['remove_workdir_on_failure']
