@@ -151,6 +151,12 @@ class Config(object):
         return config
 
     def __getitem__(self, item):
+        if '.' in item:
+            raise KeyError(
+                'Config entry {key} is invalid. Config entries may not be '
+                'retrieved using dotted notation. Please use nested dicts '
+                'instead.'.format(key=item)
+            )
         config = self._generate_config()
         if item in config.keys():
             return config[item]
