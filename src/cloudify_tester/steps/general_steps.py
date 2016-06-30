@@ -18,6 +18,7 @@ def clean_up_funkyhat_test(context, filename, path):
         kwargs={'filename': filename, 'path': path},
     )
 
+
 @then('I like cake')
 def do_thing(context):
     context._env.blueprints.append('cake')
@@ -26,12 +27,14 @@ def do_thing(context):
     context._env.cloudify_bootstrap_completed = True
     print(context._env.cloudify_bootstrap_completed)
 
+
 @then('I like biscuits')
 def do_other(context):
     context._env.blueprints.append('biscuits')
     print(context._env.blueprints)
     print(context._env.cloudify_bootstrap_completed)
     assert False
+
 
 @step('I fail a step')
 def fail_step(context):

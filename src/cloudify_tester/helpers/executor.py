@@ -104,7 +104,7 @@ class Executor(object):
                     # It worked!
                     succeeded = True
                     break
-                elif attempt == retries:
+                elif attempt == (retries - 1):
                     if exception_on_failure:
                         raise RetriesExceededError(
                             'Retries exceeded for command {command} with '

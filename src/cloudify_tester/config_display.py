@@ -7,6 +7,7 @@ import click
 # ellipsis. JSON will be compatible, but doesn't add fluff.
 import json
 
+
 @click.command()
 @click.option('--generate-sample-config', is_flag=True, default=False,
               help='Generate a sample config instead of showing options.')

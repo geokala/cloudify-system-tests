@@ -1,8 +1,7 @@
 import yaml
 
-import atexit
 import os
-import pkg_resources
+
 
 class SchemaError(Exception):
     pass
@@ -112,11 +111,22 @@ class Config(object):
     def items(self):
         return self._generate_config().items()
 
-default_schemas = [
-    pkg_resources.resource_filename(
-        'cloudify_tester',
-        os.path.join('schemas', schema),
-    )
-    for schema in pkg_resources.resource_listdir('cloudify_tester', 'schemas')
-]
-atexit.register(pkg_resources.cleanup_resources)
+
+def find_default_schemas():
+    schemas = []
+
+    candidate_paths = ['./schemas']
+    candidate_paths.extend([
+        os.path.join(path, 'system_tests', 'schemas')
+        for path in os.listdir('.')
+        if os.path.isdir(path)
+    ])
+    for path in candidate_paths:
+        if os.path.isdir(path):
+            for schema in os.listdir(path):
+                if schema.endswith('.yaml'):
+                    schemas.append(os.path.join(path, schema))
+
+    return schemas
+
+default_schemas = find_default_schemas()

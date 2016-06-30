@@ -8,7 +8,22 @@ import os
 
 @step('I create inputs file {inputs_file} from template {template_name}')
 def cfy_create_inputs(context, inputs_file, template_name):
-    template_path = os.path.join('templates', template_name)
+    # Find templates
+    # TODO: This is copy-pasta from the config.py, should split out common
+    # elements
+    templates = {}
+    candidate_paths = ['./templates']
+    candidate_paths.extend([
+        os.path.join(path, 'system_tests', 'templates')
+        for path in os.listdir('.')
+        if os.path.isdir(path)
+    ])
+    for path in candidate_paths:
+        if os.path.isdir(path):
+            for template in os.listdir(path):
+                templates[template] = os.path.join(path, template)
+
+    template_path = templates[template_name]
     with open(template_path) as template_handle:
         inputs = template_handle.read().format(**context.tester_conf)
 

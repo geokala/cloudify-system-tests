@@ -7,6 +7,7 @@ import click
 
 import os
 
+
 @click.command()
 @click.argument('git_repo')
 @click.option('--checkout', default='master',
