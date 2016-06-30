@@ -1,0 +1,25 @@
+Cloudify tester framework user guide:
+
+1. Install the framework:
+  `pip install .`
+
+2. Get the plugin you wish to test.
+  - See `get_plugin_tests --help` for details of what the plugin's git repo must contain.
+  - Once you know which plugin you wish to test, retrieve it:
+    `get_plugin_tests --checkout <branch> https://github.com/<user>/<repo>.git`
+
+3. Generate a sample config in the correct location, then check details of what you need to fill in:
+  `show_config_schema --generate-sample-config > test_config.yaml`
+  `show_config_schema`
+
+4. Fill in the config then make sure it's correct:
+  `show_config_schema --validate`
+
+5. List the tests, to see which ones you wish to run:
+  `behave -d` (or `behave --dry-run`)
+
+6. If you only wish to run features matching a tag, without seeing what was skipped, run:
+  `behave --tags=openstack --no-skipped`
+
+For more details, call behave, show_config_schema, or get_plugin_tests with '--h
+elp'.
