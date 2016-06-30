@@ -31,6 +31,9 @@ def get_plugin_tests(git_repo, checkout, name):
             steps this plugin provides/uses
             This steps folder should also contain the steps.py file provided
             in the base system tests, as this imports the default steps
+          - a system_tests/features/environment.py, a copy of the one provided
+            in the base system tests, as this sets up the environment for
+            behave
         This repo may also contain:
           - a system_tests/templates folder containing any templates, e.g. for
             inputs
@@ -75,13 +78,6 @@ def get_plugin_tests(git_repo, checkout, name):
         os.getcwd(), name, 'system_tests',
     )
 
-    if os.path.isfile(os.path.join(plugin_tests_path, 'setup.py')):
-        pip = PipHelper(
-            workdir=os.getcwd(),
-            executor=executor,
-        )
-        pip.install(plugin_tests_path)
-
     # Generate behave configuration to automatically find feature files
     if not os.path.exists('.behaverc'):
         with open('.behaverc', 'w') as conf_handle:
@@ -93,9 +89,20 @@ def get_plugin_tests(git_repo, checkout, name):
                 )
             )
     else:
-        with open('.behaverc', 'a') as conf_handle:
-            conf_handle.write(
-                'paths={plugin}/system_tests/features\n'.format(
-                    plugin=name,
-                )
-            )
+        this_features_path = 'paths={plugin}/system_tests/features\n'.format(
+            plugin=name,
+        )
+
+        with open('.behaverc') as conf_handle:
+            current_conf = conf_handle.readlines()
+
+        if this_features_path not in current_conf:
+            with open('.behaverc', 'a') as conf_handle:
+                conf_handle.write(this_features_path)
+
+    if os.path.isfile(os.path.join(plugin_tests_path, 'setup.py')):
+        pip = PipHelper(
+            workdir=os.getcwd(),
+            executor=executor,
+        )
+        pip.install(plugin_tests_path)
