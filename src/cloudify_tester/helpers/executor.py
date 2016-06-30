@@ -16,7 +16,7 @@ class Executor(object):
 
     def __call__(self, command, path_prepends=None, env_var_overrides=None,
                  retries=3, retry_delay=3, cwd=None, fake=False,
-                 expected_return_codes=(0,)):
+                 expected_return_codes=(0,), exception_on_failure=True):
         if env_var_overrides is None:
             env_var_overrides = {}
         if path_prepends is None:
@@ -58,9 +58,12 @@ class Executor(object):
                 env=cache_file,
             )
 
+        succeeded = False
         run_message = 'Running {command} in {path} with env vars from {env}'
         for attempt in range(0, retries):
             try:
+                process_stdout = []
+                process_stderr = []
                 self.logger.info(
                     run_message.format(
                         command=' '.join(command),
@@ -76,20 +79,30 @@ class Executor(object):
                     stderr=subprocess.PIPE,
                 )
                 while process.returncode is None:
-                    self._log_process_output(process)
+                    self._process_output(
+                        process,
+                        process_stdout,
+                        process_stderr
+                    )
                     process.poll()
-                self._log_process_output(process)
+                self._process_output(
+                    process,
+                    process_stdout,
+                    process_stderr
+                )
                 if process.returncode in expected_return_codes:
                     # It worked!
+                    succeeded = True
                     break
                 elif attempt == retries:
-                    raise RetriesExceededError(
-                        'Retries exceeded for command {command} with final '
-                        'return code {code}.'.format(
-                            command=' '.join(command),
-                            code=process.returncode,
+                    if exception_on_failure:
+                        raise RetriesExceededError(
+                            'Retries exceeded for command {command} with '
+                            'final return code {code}.'.format(
+                                command=' '.join(command),
+                                code=process.returncode,
+                            )
                         )
-                    )
                 else:
                     # Not too good on that attempt, try again
                     self.logger.warn(
@@ -107,13 +120,21 @@ class Executor(object):
                     )
                 )
                 raise
-        return process
+        return {
+            'returncode': process.returncode,
+            'stdout': process_stdout,
+            'stderr': process_stderr,
+            'attempts': attempt,
+            'succeeded': succeeded,
+        }
 
-    def _log_process_output(self, process):
+    def _process_output(self, process, process_stdout, process_stderr):
         for line in process.stdout.readlines():
             self.logger.info(line.rstrip('\n'))
+            process_stdout.append(line)
         for line in process.stderr.readlines():
             self.logger.error(line.rstrip('\n'))
+            process_stderr.append(line)
 
     def _generate_dotfile(self, command, env):
         candidate_filename = 'env_' + ''.join(command[:3])
