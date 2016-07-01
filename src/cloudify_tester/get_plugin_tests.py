@@ -7,6 +7,7 @@ import click
 
 import importlib
 import os
+import pip
 
 
 @click.command()
@@ -103,9 +104,19 @@ def get_plugin_tests(git_repo, checkout, name):
         )
         pip.install(plugin_tests_path, upgrade=True)
 
+        # Try to figure out the package name
+        with open(os.path.join(plugin_tests_path, 'setup.py')) as setup:
+            setup_file = setup.readlines()
+        new_package=''
+        for line in setup_file:
+            line = line.strip()
+            if line.startswith('name="'):
+                new_package = line.split('"')[1]
+                break
+
         try:
-            importlib.import_module('{name}.steps'.format(name=name))
-            module_name = '{name}\n'.format(name=name)
+            importlib.import_module('{name}.steps'.format(name=new_package))
+            module_name = '{name}\n'.format(name=new_package)
             # TODO: DRY this
             with open('.step_modules') as step_modules_handle:
                 current_step_modules = step_modules_handle.readlines()
