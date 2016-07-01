@@ -5,6 +5,7 @@ from cloudify_tester.helpers.executor import Executor
 
 import click
 
+import importlib
 import os
 
 
