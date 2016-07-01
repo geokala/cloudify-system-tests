@@ -40,6 +40,10 @@ class CfyHelper(CfyHelperBase):
             workdir=workdir,
             executor=executor,
         )
+        self.plugins = _CfyPluginsHelper(
+            workdir=workdir,
+            executor=executor,
+        )
 
     def create_inputs(self, inputs_dict, inputs_name='inputs.yaml'):
         inputs_yaml = yaml.dump(inputs_dict, default_flow_style=False)
@@ -130,6 +134,11 @@ class _CfyDeploymentsHelper(CfyHelperBase):
             command.append('--ignore-live-nodes')
         return self._exec(command, fake_run=fake_run)
 
+
+class _CfyPluginsHelper(CfyHelperBase):
+    def upload(self, plugin_path, fake_run=False):
+        command = ['plugins', 'upload', '-p', plugin_path]
+        return self._exec(command, fake_run=fake_run)
 
 class _CfyExecutionsHelper(CfyHelperBase):
     def start(self, deployment_id, workflow, timeout=900, fake_run=False):

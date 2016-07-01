@@ -1,5 +1,6 @@
-from cloudify_tester.helpers.git import GitHelper
 from cloudify_tester.helpers.cfy import CfyHelper
+from cloudify_tester.helpers.curl import CurlHelper
+from cloudify_tester.helpers.git import GitHelper
 from cloudify_tester.helpers.pip import PipHelper
 from cloudify_tester.helpers.logger import TestLogger
 from cloudify_tester.helpers.executor import Executor
@@ -19,6 +20,7 @@ class TestEnvironment(object):
     _cleanups = []
     manager_bootstrap_completed = False
     cli_installed = False
+    plugins = []
     blueprints = []
     deployments = []
     deployments_outputs = {}
@@ -42,6 +44,7 @@ class TestEnvironment(object):
         self.cfy = CfyHelper(workdir=self.workdir, executor=self.executor)
         self.git = GitHelper(workdir=self.workdir, executor=self.executor)
         self.pip = PipHelper(workdir=self.workdir, executor=self.executor)
+        self.curl = CurlHelper(workdir=self.workdir, executor=self.executor)
 
         self.executor(['virtualenv', '.'])
 

@@ -7,6 +7,17 @@ import yaml
 import os
 
 
+@step('I have uploaded the plugin {url} to the manager')
+def cfy_get_and_upload_plugin(context, url):
+    if url in context._env.plugins:
+        return
+
+    context._env.curl.get_file(url)
+    expected_filename = os.path.split(url)[1]
+    context._env.cfy.plugins.upload(expected_filename)
+    context._env.plugins.append(url)
+
+
 @step('I have installed Cloudify CLI version {version} from github '
       'organisation {organisation}')
 @step('I have installed Cloudify CLI version {version} from github')
