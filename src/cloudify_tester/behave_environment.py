@@ -59,7 +59,9 @@ def before_feature(context, feature):
 @capture
 def after_feature(context, feature):
     behave_env_logger.info('Executing cleanup functions')
-    behave_env_logger.info('Output will be absent if log_to_console is false')
+    behave_env_logger.info(
+        'Output will be absent if logging.to_console is false'
+    )
     if context.failed:
         cleanup = context.tester_conf['cleanup']['on_failure']
         remove_workdir = (
