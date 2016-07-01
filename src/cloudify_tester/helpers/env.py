@@ -18,6 +18,7 @@ class TestEnvironment(object):
     pip = None
     _cleanups = []
     manager_bootstrap_completed = False
+    cli_installed = False
     blueprints = []
     deployments = []
     deployments_outputs = {}

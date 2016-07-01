@@ -21,7 +21,7 @@ class PipHelper(object):
         command = [
             'install',
             'https://github.com/{organisation}/'
-            'cloudify-cli/archive/{version}.git'.format(
+            'cloudify-cli/archive/{version}.zip'.format(
                 organisation=organisation,
                 version=version,
             ),

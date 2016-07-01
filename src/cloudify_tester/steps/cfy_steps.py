@@ -11,8 +11,10 @@ import os
       'organisation {organisation}')
 @step('I have installed Cloudify CLI version {version} from github')
 def cfy_install_cli_from_github(context, version,
-                                organisation='cloudify_cosmo'):
-    context._env.pip.install_cloudify_cli(organisation, version)
+                                organisation='cloudify-cosmo'):
+    if not context._env.cli_installed:
+        context._env.pip.install_cloudify_cli(organisation, version)
+        context._env.cli_installed = True
 
 
 @step('I create inputs file {inputs_file} from template {template_name}')
