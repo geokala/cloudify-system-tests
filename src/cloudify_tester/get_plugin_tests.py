@@ -27,10 +27,6 @@ def get_plugin_tests(git_repo, checkout, name):
         This repo is expected to contain:
           - a system_tests/features folder containing any features for this
             plugin
-          - a system_tests/features/steps folder containing code for any extra
-            steps this plugin provides/uses
-            This steps folder should also contain the steps.py file provided
-            in the base system tests, as this imports the default steps
           - a system_tests/features/environment.py, a copy of the one provided
             in the base system tests, as this sets up the environment for
             behave
@@ -91,6 +87,7 @@ def get_plugin_tests(git_repo, checkout, name):
                 )
             )
     else:
+        # TODO: DRY this
         with open('.behaverc') as conf_handle:
             current_conf = conf_handle.readlines()
 
@@ -103,4 +100,20 @@ def get_plugin_tests(git_repo, checkout, name):
             workdir=os.getcwd(),
             executor=executor,
         )
-        pip.install(plugin_tests_path)
+        pip.install(plugin_tests_path, upgrade=True)
+
+        try:
+            importlib.import_module('{name}.steps'.format(name=name))
+            module_name = '{name}\n'.format(name=name)
+            # TODO: DRY this
+            with open('.step_modules') as step_modules_handle:
+                current_step_modules = step_modules_handle.readlines()
+            if module_name not in current_step_modules:
+                with open('.step_modules', 'a') as step_modules_handle:
+                    step_modules_handle.write(module_name)
+        except ImportError:
+            logger.warn('No steps module found on pip installed library.')
+            logger.warn(
+                'If this is unexpected, add your module name to the end of '
+                'the .step_modules file.'
+            )

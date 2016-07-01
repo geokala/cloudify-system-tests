@@ -24,10 +24,10 @@ class TestEnvironment(object):
     _env_cache = {}
 
     def start(self,
-              cloudify_version=None,
               logging_level='debug',
-              log_to_console=False):
-        self.workdir = tempfile.mkdtemp()
+              log_to_console=False,
+              workdir_prefix='cloudify_tester'):
+        self.workdir = tempfile.mkdtemp(prefix=workdir_prefix)
 
         # Set up logger
         self.logger = TestLogger(self.workdir)
@@ -43,13 +43,6 @@ class TestEnvironment(object):
         self.pip = PipHelper(workdir=self.workdir, executor=self.executor)
 
         self.executor(['virtualenv', '.'])
-        if cloudify_version:
-            cloudify = 'cloudify=={version}'.format(
-                version=cloudify_version
-            )
-        else:
-            cloudify = 'cloudify'
-        self.pip.install(cloudify)
 
     def add_cleanup(self, function, args=None, kwargs=None):
         cleanup = {

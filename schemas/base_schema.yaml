@@ -1,6 +1,3 @@
-cli_version:
-  description: Version of cloudify CLI to use in workdir. Default is most recent as understood by pip.
-  default: null
 resources_prefix:
   description: The prefix to put on resources specified in blueprints.
   default: system-tests

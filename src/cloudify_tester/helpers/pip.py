@@ -8,10 +8,12 @@ class PipHelper(object):
         prepared_command.extend(command)
         self._executor(prepared_command, fake=fake_run)
 
-    def install(self, packages, fake_run=False):
+    def install(self, packages, upgrade=False, fake_run=False):
         if not isinstance(packages, list):
             packages = [packages]
         command = ['install']
+        if upgrade:
+            command.append('--upgrade')
         command.extend(packages)
         self._exec(command, fake_run=fake_run)
 
