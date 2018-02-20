@@ -2,12 +2,12 @@ Feature: Example deployment on manager
 #  @manager @openstack
   Scenario: Installing manager
     When I have installed cfy
-#     And I deploy a manager on openstack
+    And I deploy a manager on openstack
 
 #  @manager @openstack @manager_deployment @install
 #  Scenario: Create example deployment
 #    Given no tests have failed in this feature
-#     When I have example blueprint and inputs  # TODO
+#     When I have example blueprint and inputs from templates
 #      And I upload blueprint example.yaml as example
 #      And I create deployment example from blueprint example
 #      And I install deployment example

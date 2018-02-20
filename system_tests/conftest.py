@@ -4,8 +4,9 @@ import subprocess
 pytest_plugins = (
     'cloudify_tester.steps',
     'cloudify_tester.fixtures',
-    #'helpers.steps',
+    'helpers.steps',
 )
+
 
 def pytest_configure(config):
     base_path = os.path.split(__file__)[0]
@@ -38,7 +39,8 @@ def pytest_configure(config):
             feature_module_py,
         )
 
-        feature = """from pytest_bdd import scenarios
+        feature = """# noqa
+from pytest_bdd import scenarios
 
 scenarios('{}')""".format(os.path.join(feature_files_path, feature_file))
 
