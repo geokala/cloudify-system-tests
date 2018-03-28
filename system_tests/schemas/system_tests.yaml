@@ -1,8 +1,6 @@
-namespace: system_tests_platforms
-openstack_manager_vm_size:
-  description: The size of VM to use on openstack.
-openstack_manager_base_image:
-  description: The RHEL or Centos base image to use on openstack.
-openstack_plugin:
-  description: The openstack plugin installation source.
-  default: https://github.com/cloudify-cosmo/cloudify-openstack-plugin/archive/2.7.0.zip
+namespace: system_tests
+manager_install_rpm_url:
+  description: URL for manager install RPM.
+manager_ssh_user:
+  description: User with SSH access to manager.
+  default: centos

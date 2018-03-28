@@ -1,0 +1,76 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+imports:
+  - {{cloudify.types_location}}
+  - {{system_tests_platforms.openstack_plugin_yaml}}
+
+inputs:
+  image:
+    description: >
+      RHEL or Centos image to deploy manager on.
+
+  flavor:
+    description: >
+      An image size with at least 2 CPUs and 4GB RAM.
+
+  network_name:
+    description: >
+      Network for manager VM.
+
+  floating_ip_network_id:
+    description: >
+      Floating IP network for manager VM. This should provide IPs reachable from the
+      system running the tests.
+
+  key_name:
+    description: >
+      Name of keypair on openstack to provide access to server.
+
+  keystone_username:
+    description: >
+      Username to use when accessing server.
+
+  keystone_password:
+    description: >
+      Password to use when accessing server.
+
+  keystone_tenant_name:
+    description: >
+      Name of openstack tenant.
+
+  keystone_auth_url:
+    description: >
+      URL of openstack's keystone v3.
+
+  keystone_region:
+    description: >
+      Name of openstack region.
+
+node_templates:
+  vm:
+    type: cloudify.openstack.nodes.Server
+    instances:
+      deploy: 1
+    properties:
+      agent_config:
+        install_method: none
+      server:
+        image: { get_input: image }
+        flavor: { get_input: flavor }
+        key_name: { get_input: key_name }
+      openstack_config: &openstack_config
+        username: { get_input: keystone_username }
+        password: { get_input: keystone_password }
+        tenant_name: { get_input: keystone_tenant_name }
+        auth_url: { get_input: keystone_auth_url }
+      management_network_name: { get_input: network_name }
+    relationships:
+      - type: cloudify.openstack.server_connected_to_floating_ip
+        target: virtual_ip
+
+  virtual_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+    properties:
+      floatingip:
+        floating_network_id: { get_input: floating_ip_network_id }
+      openstack_config: *openstack_config

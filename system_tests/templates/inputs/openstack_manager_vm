@@ -1,0 +1,10 @@
+image: {{system_tests_platforms.openstack_manager_base_image}}
+flavor: {{system_tests_platforms.openstack_manager_vm_flavor}}
+network_name: {{system_tests_platforms.openstack_manager_network_name}}
+floating_ip_network_id: {{system_tests_platforms.openstack_manager_floating_ip_network_id}}
+key_name: {{system_tests_platforms.openstack_keypair_name}}
+keystone_username: {{system_tests_platforms.openstack_username}}
+keystone_password: {{system_tests_platforms.openstack_password}}
+keystone_tenant_name: {{system_tests_platforms.openstack_tenant_name}}
+keystone_auth_url: {{system_tests_platforms.openstack_auth_url}}
+keystone_region: {{system_tests_platforms.openstack_region}}

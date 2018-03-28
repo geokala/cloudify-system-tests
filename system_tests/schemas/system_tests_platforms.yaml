@@ -1,0 +1,37 @@
+namespace: system_tests_platforms
+openstack_manager_vm_flavor:
+  description: The flavor of VM to use on openstack. This should have at least 2 CPUs and 4GB RAM.
+openstack_manager_base_image:
+  description: The RHEL or Centos base image to use on openstack.
+openstack_plugin:
+  description: The openstack plugin installation source.
+  default: https://github.com/cloudify-cosmo/cloudify-openstack-plugin/archive/2.7.0.zip
+openstack_plugin_yaml:
+  description: The openstack plugin yaml location. This should match the plugin used.
+  default: https://raw.githubusercontent.com/cloudify-cosmo/cloudify-openstack-plugin/2.7.0/plugin.yaml
+openstack_manager_ssh_user:
+  description: The username to use when accessing the manager via SSH.
+openstack_key_file:
+  description: The private key to use when accessing the manager via SSH.
+openstack_manager_network_name:
+  description: Network name to attach manager to on openstack.
+openstack_manager_floating_ip_network_id:
+  description: Network ID for reachable floating IPs on openstack.
+openstack_keypair_name:
+  description: Openstack keypair to use with manager. This should correspond to the key file used in openstack_manager_ssh_key.
+openstack_username:
+  description: Openstack keystone username.
+openstack_password:
+  description: Openstack keystone password.
+openstack_tenant_name:
+  description: Openstack keystone tenant name.
+openstack_auth_url:
+  description: Openstack keystone v3 URL.
+openstack_region:
+  description: Openstack keystone region.
+openstack_ip_node_name:
+  description: Name of node with reachable IPs on openstack.
+  default: virtual_ip
+openstack_ip_runtime_property:
+  description: Name of runtime property for IP on openstack_ip_node.
+  default: floating_ip_address
