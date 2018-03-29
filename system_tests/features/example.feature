@@ -1,8 +1,9 @@
 Feature: Example deployment on manager
-#  @manager @openstack
+  @manager
   Scenario: Installing manager
+    Given I can use the specified system tests platform
     When I have installed cfy
-    And I deploy a manager on openstack called test_manager
+    And I deploy a manager called test_manager
 
 #  @manager @openstack @manager_deployment @install
 #  Scenario: Create example deployment

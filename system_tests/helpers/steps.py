@@ -1,7 +1,7 @@
 import random
 import string
 
-from pytest_bdd import when, parsers
+from pytest_bdd import given, when, parsers
 
 from cloudify_tester.steps.cfy import (
     render_named_blueprint_and_inputs,
@@ -27,27 +27,29 @@ MANAGER_CONFIG = """manager:
     admin_password: {admin_password}"""
 
 
+@given('I can use the specified system tests platform')
+def platform_exists(tester_conf):
+    """
+        Allow failing fast if a missing platform is provided.
+    """
+    _check_platform(
+        tester_conf['system_tests']['platform'],
+        tester_conf['system_tests_platforms'],
+    )
+
+
 # TODO: Add versioned manager deploys, and support pre 4.0-<4.3
 @when(parsers.parse(
-    "I deploy a manager on {platform} called {manager_name}"
+    "I deploy a manager called {manager_name}"
 ))
-def deploy_manager_on_platform(platform,
-                               manager_name,
+def deploy_manager_on_platform(manager_name,
                                environment,
                                tester_conf):
     # TODO: Docstring
+    platform = tester_conf['system_tests']['platform']
     platform_config = tester_conf['system_tests_platforms']
 
-    assert '{platform}_plugin'.format(platform=platform) in platform_config, (
-        'Platform {platform} was not available in the configuration. '
-        'Available platforms: {available}'.format(
-            platform=platform,
-            available=', '.join([
-                key for key in platform_config.keys()
-                if key.endswith('_plugin')
-            ]),
-        )
-    )
+    _check_platform(platform, platform_config)
 
     # Generate the VM the manager will be installed on
     render_named_blueprint_and_inputs(
@@ -169,3 +171,16 @@ def _get_random_string(length=20):
         random.choice(string.letters+string.digits)
         for i in range(length)
     ])
+
+
+def _check_platform(platform, platform_config):
+    assert '{platform}_plugin'.format(platform=platform) in platform_config, (
+        'Platform {platform} was not available in the configuration. '
+        'Available platforms: {available}'.format(
+            platform=platform,
+            available=', '.join([
+                key[:-7] for key in platform_config.keys()
+                if key.endswith('_plugin')
+            ]),
+        )
+    )

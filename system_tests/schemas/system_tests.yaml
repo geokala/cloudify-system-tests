@@ -4,3 +4,5 @@ manager_install_rpm_url:
 manager_ssh_user:
   description: User with SSH access to manager.
   default: centos
+platform:
+  description: Which platform will provide resources for system tests.
